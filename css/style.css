@@ -4,6 +4,7 @@ div.pad {
     height: 30px;
     background-color: black;
     z-index: 1;
+    transition-property: translateX, translateY;
 }
 
 #pad_1 {
