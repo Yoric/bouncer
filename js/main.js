@@ -6,12 +6,13 @@
       var id2 = id;
       var pad = $(id);
       pad.addEventListener("touchmove", function() {
-        myConsole.textContent += "touchmove " + id2;
-        myConsole.innerHTML += "<br />";
+        myConsole.innerHTML += "touchmove " + id2 + "<br />";
       });
+/*
       pad.addEventListener("mousemove", function() {
         myConsole.innerHTML += "mousemove " + id2 + "<br />";
       });
+*/
     })();
   }
 })();
