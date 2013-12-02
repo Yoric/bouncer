@@ -1,31 +1,19 @@
+body {
+    margin:0;
+    padding:0;
+    border:0;
+    width:100%;
+}
+
+
 div.pad {
     position: absolute;
     width: 30px;
     height: 30px;
-    background-color: black;
+    background-color: blue;
     z-index: 1;
-    transition-property: translateX, translateY;
 }
 
-#pad_1 {
-    left: 0;
-    top: 0;
-}
-
-#pad_2 {
-    left: 0;
-    bottom: 30px;
-}
-
-#pad_3 {
-    right: 30px;
-    bottom: 30px;
-}
-
-#pad_4 {
-    right: 30px;
-    top: 0;
-}
 
 #console {
     position: absolute;
