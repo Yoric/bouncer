@@ -128,6 +128,10 @@
   sprites.padEast.ypos = "center";
   sprites.ball.xpos = "center";
   sprites.ball.ypos = "center";
+  sprites.ball.event.angle = 2 * Math.random() * Math.PI;
+  sprites.ball.event.dx = Math.round(Math.cos(sprites.ball.event.angle) * 100);
+  sprites.ball.event.dy = Math.round(Math.sin(sprites.ball.event.angle) * 100);
+  sprites.ball.event.speed = .1;
   sprites.writeToDOM();
 
   for (var key of ["padNorth", "padSouth", "padEast", "padWest"]) {
@@ -157,7 +161,12 @@
 
 
   var nextFrame = function() {
+
     // -------- Read from DOM -------------
+
+    // All reads from DOM *must* happen before the writes to DOM.
+    // Otherwise, we end up recomputing the layout several times
+    // for a frame, which is very much not good.
 
     sprites.readFromDOM();
     width = window.innerWidth;
@@ -170,14 +179,24 @@
 
     // FIXME: Handle bounce
 
+
+    // Update position of sprites
+
     sprites.padNorth.nextX = sprites.padNorth.event.pageX;
     sprites.padSouth.nextX = sprites.padSouth.event.pageX;
     sprites.padEast.nextY = sprites.padEast.event.pageY;
     sprites.padWest.nextY = sprites.padWest.event.pageY;
 
+    sprites.ball.nextX = sprites.ball.x + sprites.ball.event.dx * sprites.ball.event.speed;
+    sprites.ball.nextY = sprites.ball.y + sprites.ball.event.dy * sprites.ball.event.speed;
+
     // FIXME: Handle ball movement
 
     // FIXME: Handle health, win/lose
+
+    // FIXME: Handle game speed
+
+    // FIXME: Handle score
 
     // -------- Wrote to DOM -------------
 
@@ -190,7 +209,14 @@
   nextFrame();
 
   // Main loop
+  var timestamps = {
+    gameStart: Date.now(),
+    previousFrame: null,
+    currentFrame: null,
+  };
   requestAnimationFrame(function loop() {
+    timestamps.previousFrame = timestamps.currentFrame;
+    timestamps.currentFrame = Date.now();
     nextFrame();
     requestAnimationFrame(loop);
   });
