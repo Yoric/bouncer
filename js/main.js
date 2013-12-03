@@ -1,7 +1,15 @@
 (function bouncer() {
+  "use strict";
+
   var $ = document.getElementById.bind(document);
   var width = window.innerWidth;
   var height = window.innerHeight;
+
+  var timeStamps = {
+    gameStart: Date.now(),
+    previousFrame: Date.now() - 15,
+    currentFrame: Date.now(),
+  };
 
   function Sprite(id) {
     this.id = id;
@@ -47,6 +55,19 @@
 
     // Utility methods
 
+    get W() {
+      return this.x;
+    },
+    get E() {
+      return this.x + this.width;
+    },
+    get N() {
+      return this.y;
+    },
+    get S() {
+      return this.y + this.height;
+    },
+
     /**
      * Set the x position
      *
@@ -59,7 +80,6 @@
           break;
         case 'right':
           this.nextX = width - this.width;
-          console.log("xpos", this.id, "right", width, this.width);
           break;
         case 'center':
           this.nextX = (width - this.width) / 2;
@@ -116,6 +136,11 @@
     },
   };
 
+  var pads = Object.freeze([sprites.padNorth,
+    sprites.padSouth,
+    sprites.padEast,
+    sprites.padWest]);
+
   // Set initial positions
   sprites.readFromDOM();
   sprites.padNorth.xpos = "center";
@@ -131,7 +156,7 @@
   sprites.ball.event.angle = 2 * Math.random() * Math.PI;
   sprites.ball.event.dx = Math.round(Math.cos(sprites.ball.event.angle) * 100);
   sprites.ball.event.dy = Math.round(Math.sin(sprites.ball.event.angle) * 100);
-  sprites.ball.event.speed = .1;
+  sprites.ball.event.speed = .01;
   sprites.writeToDOM();
 
   for (var key of ["padNorth", "padSouth", "padEast", "padWest"]) {
@@ -175,28 +200,64 @@
     // --------- Done reading from DOM ----
 
 
+    var deltaT = timeStamps.currentFrame - timeStamps.previousFrame;
+
     // FIXME: Handle pause
 
     // FIXME: Handle bounce
 
 
     // Bounce on walls
-    if (sprites.ball.event.dy <= 0 && sprites.ball.y <= 0) {
-      sprites.ball.event.dy = - sprites.ball.event.dy;
-    } else if (sprites.ball.event.dy >= 0 && sprites.ball.y + sprites.ball.height >= height) {
-      sprites.ball.event.dy = - sprites.ball.event.dy;
-    }
-    if (sprites.ball.event.dx <= 0 && sprites.ball.x <= 0) {
-      sprites.ball.event.dx = - sprites.ball.event.dx;
-    } else if (sprites.ball.event.dx >= 0 && sprites.ball.x + sprites.ball.width >= width) {
-      sprites.ball.event.dx = - sprites.ball.event.dx;
+
+    var horizontalBounce = false;
+    var verticalBounce = false;
+
+    function collide(exclude) {
+      var ball = sprites.ball;
+      for (var pad of pads) {
+        if (pad == exclude) {
+          continue;
+        }
+        if (pad.E < ball.W
+            || pad.W > ball.E) {
+          // The ball is misaligned horizontally
+          continue;
+        }
+        if (pad.S < ball.N ||
+            pad.N > ball.S) {
+           // The ball is misaligned vertically
+          continue;
+        }
+        return true;
+      }
+      return false;
     }
 
+    if (sprites.ball.event.dx < 0) {
+      horizontalBounce = sprites.ball.x <= 0 || collide(sprites.padEast);
+    } else if (sprites.ball.event.dx > 0) {
+      horizontalBounce = sprites.ball.E >= width || collide(sprites.padWest);
+    }
+
+    if (sprites.ball.event.dy < 0) {
+      verticalBounce = sprites.ball.y <= 0 || collide(sprites.padSouth);
+    } else if (sprites.ball.event.dy > 0) {
+      verticalBounce = sprites.ball.S >= height|| collide(sprites.padNorth);
+    }
+
+    if (horizontalBounce) {
+      sprites.ball.event.dx = -sprites.ball.event.dx;
+    }
+    if (verticalBounce) {
+      sprites.ball.event.dy = -sprites.ball.event.dy;
+    }
 
     // FIXME: Bounce on sprites
 
     // Update position of sprites
-
+    // Note that we set both x and y, even for sprites that can move only
+    // laterally/vertically, to ensure that we keep the game flowing even
+    // in case of screen resize or orientation change.
     sprites.padNorth.nextX = sprites.padNorth.event.pageX;
     sprites.padNorth.ypos = "top";
 
@@ -210,8 +271,8 @@
     sprites.padWest.xpos = "left";
 
 
-    sprites.ball.nextX = sprites.ball.x + sprites.ball.event.dx * sprites.ball.event.speed;
-    sprites.ball.nextY = sprites.ball.y + sprites.ball.event.dy * sprites.ball.event.speed;
+    sprites.ball.nextX = sprites.ball.x + Math.round(sprites.ball.event.dx * sprites.ball.event.speed * deltaT);
+    sprites.ball.nextY = sprites.ball.y + Math.round(sprites.ball.event.dy * sprites.ball.event.speed * deltaT);
 
     // FIXME: Handle health, win/lose
 
@@ -230,14 +291,9 @@
   nextFrame();
 
   // Main loop
-  var timestamps = {
-    gameStart: Date.now(),
-    previousFrame: null,
-    currentFrame: null,
-  };
   requestAnimationFrame(function loop() {
-    timestamps.previousFrame = timestamps.currentFrame;
-    timestamps.currentFrame = Date.now();
+    timeStamps.previousFrame = timeStamps.currentFrame;
+    timeStamps.currentFrame = Date.now();
     nextFrame();
     requestAnimationFrame(loop);
   });

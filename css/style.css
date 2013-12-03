@@ -1,3 +1,8 @@
+* {
+    font-family: 'Architects Daughter', fantasy;
+    font-size: 25px;
+}
+
 body {
     margin:0;
     padding:0;
@@ -8,18 +13,27 @@ body {
 
 div.pad {
     position: absolute;
-    width: 30px;
-    height: 30px;
     background-color: blue;
     z-index: 1;
+    text-align: center;
+    vertical-align: center;
+    color: white;
+}
+
+div.pad.horizontal {
+    width: 180px;
+    height: 30px;
+}
+
+div.pad.vertical {
+    height: 180px;
+    width: 30px;
 }
 
 
 #ball {
     position: absolute;
-    width: 15px;
-    height: 15px;
-    border: black;
+    font-size: x-large;
 }
 
 #console {
