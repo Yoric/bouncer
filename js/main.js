@@ -7,57 +7,39 @@
     this.style = this.element.style;
 
     // The position of the sprite, in pixels.
-    this._x = null;
-    this._y = null;
+    this.x = null;
+    this.y = null;
 
     // The current destination of the sprite, in pixels.
-    this._nextX = this._x;
-    this._nextY = this._y;
+    this.nextX = null;
+    this.nextY = null;
 
+    // The current width/height of the sprite, in pixels.
     this.width = null;
     this.height = null;
 
+    // An object used to store event information for this sprite
     this.event = {};
-    this.changed = false;
 
     this.readFromDOM();
   }
   Sprite.prototype = {
-    get x() {
-      return this._x;
-    },
-    get y() {
-      return this._y;
-    },
-    set x(x) {
-      this.changed = true;
-      this._nextX = x;
-    },
-    set y(y) {
-      this.changed = true;
-      this._nextY = y;
-    },
-
     /**
      * Perform all reads from DOM
      */
     readFromDOM: function() {
-      this._x = this.element.offsetLeft;
-      this._y = this.element.offsetTop;
+      this.x = this.element.offsetLeft;
+      this.y = this.element.offsetTop;
       this.width = this.element.offsetWidth;
       this.height = this.element.offsetHeight;
-      this.changed = false;
     },
 
     /**
      * Write to the DOM the values of this.nextX, this.nextY
      */
     writeToDOM: function() {
-      if (!this.changed) {
-        return;
-      }
-      this.style.left = this._nextX + "px";
-      this.style.top  = this._nextY + "px";
+      this.style.left = this.nextX + "px";
+      this.style.top  = this.nextY + "px";
     }
   };
 
@@ -138,11 +120,10 @@
 
     // FIXME: Handle bounce
 
-    // FIXME: Handle pad movement
-    padNorth.x = padNorth.event.pageX;
-    padSouth.x = padSouth.event.pageX;
-    padEast.y = padEast.event.pageY;
-    padWest.y = padWest.event.pageY;
+    padNorth.nextX = padNorth.event.pageX;
+    padSouth.nextX = padSouth.event.pageX;
+    padEast.nextY = padEast.event.pageY;
+    padWest.nextY = padWest.event.pageY;
 
     // FIXME: Handle ball movement
 
