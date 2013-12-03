@@ -180,17 +180,38 @@
     // FIXME: Handle bounce
 
 
+    // Bounce on walls
+    if (sprites.ball.event.dy <= 0 && sprites.ball.y <= 0) {
+      sprites.ball.event.dy = - sprites.ball.event.dy;
+    } else if (sprites.ball.event.dy >= 0 && sprites.ball.y + sprites.ball.height >= height) {
+      sprites.ball.event.dy = - sprites.ball.event.dy;
+    }
+    if (sprites.ball.event.dx <= 0 && sprites.ball.x <= 0) {
+      sprites.ball.event.dx = - sprites.ball.event.dx;
+    } else if (sprites.ball.event.dx >= 0 && sprites.ball.x + sprites.ball.width >= width) {
+      sprites.ball.event.dx = - sprites.ball.event.dx;
+    }
+
+
+    // FIXME: Bounce on sprites
+
     // Update position of sprites
 
     sprites.padNorth.nextX = sprites.padNorth.event.pageX;
+    sprites.padNorth.ypos = "top";
+
     sprites.padSouth.nextX = sprites.padSouth.event.pageX;
+    sprites.padSouth.ypos = "bottom";
+
     sprites.padEast.nextY = sprites.padEast.event.pageY;
+    sprites.padEast.xpos = "right";
+
     sprites.padWest.nextY = sprites.padWest.event.pageY;
+    sprites.padWest.xpos = "left";
+
 
     sprites.ball.nextX = sprites.ball.x + sprites.ball.event.dx * sprites.ball.event.speed;
     sprites.ball.nextY = sprites.ball.y + sprites.ball.event.dy * sprites.ball.event.speed;
-
-    // FIXME: Handle ball movement
 
     // FIXME: Handle health, win/lose
 
