@@ -15,6 +15,13 @@ div.pad {
 }
 
 
+#ball {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: black;
+}
+
 #console {
     position: absolute;
     width: 100%;

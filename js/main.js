@@ -1,5 +1,7 @@
 (function bouncer() {
   var $ = document.getElementById.bind(document);
+  var width = window.innerWidth;
+  var height = window.innerHeight;
 
   function Sprite(id) {
     this.id = id;
@@ -28,10 +30,11 @@
      * Perform all reads from DOM
      */
     readFromDOM: function() {
-      this.x = this.element.offsetLeft;
-      this.y = this.element.offsetTop;
-      this.width = this.element.offsetWidth;
-      this.height = this.element.offsetHeight;
+      var rect = this.element.getBoundingClientRect();
+      this.x = Math.round(rect.left);
+      this.y = Math.round(rect.top);
+      this.width = Math.round(rect.width);
+      this.height = Math.round(rect.height);
     },
 
     /**
@@ -40,42 +43,92 @@
     writeToDOM: function() {
       this.style.left = this.nextX + "px";
       this.style.top  = this.nextY + "px";
+    },
+
+    // Utility methods
+
+    /**
+     * Set the x position
+     *
+     * @param {string} arg One of "left", "right", "center".
+     */
+    set xpos(arg) {
+      switch(arg) {
+        case 'left':
+          this.nextX = 0;
+          break;
+        case 'right':
+          this.nextX = width - this.width;
+          console.log("xpos", this.id, "right", width, this.width);
+          break;
+        case 'center':
+          this.nextX = (width - this.width) / 2;
+          break;
+        default:
+          throw new Error("Unknown x position: " + arg);
+      }
+    },
+
+    /**
+     * Set the y position
+     *
+     * @param {string} arg One of "top", "bottom", "center".
+     */
+    set ypos(arg) {
+      switch(arg) {
+        case 'top':
+          this.nextY = 0;
+          break;
+        case 'bottom':
+          this.nextY = height - this.height;
+          break;
+        case 'center':
+          this.nextY = (height - this.height) / 2;
+          break;
+        default:
+          throw new Error("Unknown y position: " + arg);
+      }
     }
+
   };
 
   var sprites = {
     padNorth: new Sprite("pad_north"),
     padSouth: new Sprite("pad_south"),
     padEast: new Sprite("pad_east"),
-    padWest: new Sprite("pad_west")
+    padWest: new Sprite("pad_west"),
+    ball: new Sprite("ball"),
+    readFromDOM: function() {
+      for (var key of Object.keys(this)) {
+        var sprite = this[key];
+        if (sprite instanceof Sprite) {
+          sprite.readFromDOM();
+        }
+      }
+    },
+    writeToDOM: function() {
+      for (var key of Object.keys(this)) {
+        var sprite = this[key];
+        if (sprite instanceof Sprite) {
+          sprite.writeToDOM();
+        }
+      }
+    },
   };
 
   // Set initial positions
-
-  var padNorth = sprites.padNorth;
-  var padSouth = sprites.padSouth;
-  var padEast = sprites.padEast;
-  var padWest = sprites.padWest;
-
-  var width = window.innerWidth;
-  var height = window.innerHeight;
-
-  padNorth.style.top = "0px";
-  padNorth.style.left = (width - padNorth.width) / 2 + "px";
-  padNorth.writeToDOM();
-
-  padSouth.style.bottom = "0px";
-  padSouth.style.left = (width - padSouth.width) / 2 + "px";
-  padSouth.writeToDOM();
-
-  padEast.style.top = (height - padEast.height) / 2 + "px";
-  padEast.style.right = "0px";
-  padEast.writeToDOM();
-
-  padWest.style.left = "0px";
-  padWest.style.bottom = (height - padWest.height) / 2 + "px";
-  padWest.writeToDOM();
-
+  sprites.readFromDOM();
+  sprites.padNorth.xpos = "center";
+  sprites.padNorth.ypos = "top";
+  sprites.padSouth.xpos = "center";
+  sprites.padSouth.ypos = "bottom";
+  sprites.padWest.xpos = "left";
+  sprites.padWest.ypos = "center";
+  sprites.padEast.xpos = "right";
+  sprites.padEast.ypos = "center";
+  sprites.ball.xpos = "center";
+  sprites.ball.ypos = "center";
+  sprites.writeToDOM();
 
   for (var key of ["padNorth", "padSouth", "padEast", "padWest"]) {
     (function() {
@@ -104,34 +157,34 @@
 
 
   var nextFrame = function() {
-    // Get the position of all items
-    // We need to do this *before* doing any change to CSS or position,
-    // for performance reasons.
-    for (var key of Object.keys(sprites)) {
-      sprites[key].readFromDOM();
-    }
-    var width = window.innerWidth;
-    var height = window.innerHeight;
+    // -------- Read from DOM -------------
 
-    // From this point on, there should be NO read from DOM.
+    sprites.readFromDOM();
+    width = window.innerWidth;
+    height = window.innerHeight;
+
+    // --------- Done reading from DOM ----
 
 
     // FIXME: Handle pause
 
     // FIXME: Handle bounce
 
-    padNorth.nextX = padNorth.event.pageX;
-    padSouth.nextX = padSouth.event.pageX;
-    padEast.nextY = padEast.event.pageY;
-    padWest.nextY = padWest.event.pageY;
+    sprites.padNorth.nextX = sprites.padNorth.event.pageX;
+    sprites.padSouth.nextX = sprites.padSouth.event.pageX;
+    sprites.padEast.nextY = sprites.padEast.event.pageY;
+    sprites.padWest.nextY = sprites.padWest.event.pageY;
 
     // FIXME: Handle ball movement
 
     // FIXME: Handle health, win/lose
 
-    for (key of Object.keys(sprites)) {
-      sprites[key].writeToDOM();
-    }
+    // -------- Wrote to DOM -------------
+
+    sprites.writeToDOM();
+
+    // -------- Write to DOM -------------
+
   };
 
   nextFrame();
