@@ -30,8 +30,12 @@ div.pad.vertical {
     width: 30px;
 }
 
+div.ball.init {
+    position: relative;
+    margin: auto;
+}
 
-#ball {
+div.ball {
     position: absolute;
     font-size: x-large;
     background-color: red;

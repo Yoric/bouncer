@@ -9,18 +9,40 @@
   }
 
   var $ = document.getElementById.bind(document);
+  var screen = $("screen");
   var width = window.innerWidth;
   var height = window.innerHeight;
 
+  /**
+   * The time at which some events happened, in milliseconds since the epoch.
+   */
   var timeStamps = {
+    /**
+     * The start of the game
+     */
     gameStart: Date.now(),
+
+    /**
+     * Instant at which the previous frame started being prepared
+     */
     previousFrame: Date.now() - 15,
+
+    /**
+     * Instant at which the current frame started being prepared
+     */
     currentFrame: Date.now(),
+
+    /**
+     * Instant at which we launched the latest ball
+     */
+    latestBallLaunch: 0
   };
 
   /**
    * A sprite, i.e. a moving object displayed on screen.
    *
+   * @param {string} id The id of the DOM element manipulated by
+   * this Sprite.
    * @constructor
    */
   function Sprite(id) {
@@ -128,6 +150,18 @@
       }
     },
 
+
+    /**
+     * Set both the x position and the y position
+     *
+     * @param {string} xpos See the documentation of xpos
+     * @param {string} ypos See the documentation of ypos
+     */
+    setPosition: function(xpos, ypos) {
+      this.xpos = xpos;
+      this.ypos = ypos;
+    },
+
     /**
      * Determine whether an incoming `sprite` can collide/bounce on
      * `this` sprite.
@@ -172,45 +206,22 @@
   };
 
   /**
-   * An object regrouping all the sprites.
+   * A sprite representing a ball.
+   *
+   * @param {string} id The id of the DOM element manipulated by
+   * this Sprite.
+   * @constructor inherits from Sprite
    */
-  var sprites = {
-    padNorth: new Sprite("pad_north"),
-    padSouth: new Sprite("pad_south"),
-    padEast: new Sprite("pad_east"),
-    padWest: new Sprite("pad_west"),
-    ball: new Sprite("ball"),
+  function Ball(id) {
+    // Inherit constructor
+    Sprite.call(this, id);
 
-    /**
-     * Call readFromDOM on all the sprites
-     */
-    readFromDOM: function() {
-      for (var key of Object.keys(this)) {
-        var sprite = this[key];
-        if (sprite instanceof Sprite) {
-          sprite.readFromDOM();
-        }
-      }
-    },
-
-    /**
-     * Call writeToDOM on all the sprites
-     */
-    writeToDOM: function() {
-      for (var key of Object.keys(this)) {
-        var sprite = this[key];
-        if (sprite instanceof Sprite) {
-          sprite.writeToDOM();
-        }
-      }
-    },
-  };
-
-  // Shortcut: an array with all the pads
-  var pads = Object.freeze([sprites.padNorth,
-    sprites.padSouth,
-    sprites.padEast,
-    sprites.padWest]);
+    // We start our balls with some temporary CSS.
+    // Set to false once the temporary CSS has been cleaned up
+    this._classInitialized = false;
+  }
+  // Inherit prototype
+  Ball.prototype = Object.create(Sprite.prototype);
 
   /**
    * Determine whether the ball is colliding with any pad.
@@ -222,61 +233,120 @@
    *
    * @return {boolean} true If any collision.
    */
-  function isCollidingWithAnyPad(comingFrom, exclude) {
-      var ball = sprites.ball;
-      for (var pad of pads) {
-        if (pad == exclude) {
-          continue;
-        }
-        if (pad.isCollidingWith(comingFrom, ball)) {
-          return true;
-        }
+  Ball.prototype.isCollidingWithAnyPad = function(comingFrom, exclude) {
+    for (var pad of pads) {
+      if (pad == exclude) {
+        continue;
       }
-      return false;
+      if (pad.isCollidingWith(comingFrom, this)) {
+        return true;
+      }
     }
+    return false;
+  };
 
-  // Set initial positions
-  sprites.readFromDOM();
-  sprites.padNorth.xpos = "center";
-  sprites.padNorth.ypos = "top";
-  sprites.padSouth.xpos = "center";
-  sprites.padSouth.ypos = "bottom";
-  sprites.padWest.xpos = "left";
-  sprites.padWest.ypos = "center";
-  sprites.padEast.xpos = "right";
-  sprites.padEast.ypos = "center";
-  sprites.ball.xpos = "center";
-  sprites.ball.ypos = "center";
-  sprites.ball.event.angle = 2 * Math.random() * Math.PI;
-  sprites.ball.event.dx = Math.round(Math.cos(sprites.ball.event.angle) * 100);
-  sprites.ball.event.dy = Math.round(Math.sin(sprites.ball.event.angle) * 100);
-  sprites.ball.event.speed = window.Game.Config.initialBallSpeed;
-  sprites.writeToDOM();
+  /**
+   * All the balls currently on screen.
+   */
+  Ball.balls = [];
 
-  for (var key of ["padNorth", "padSouth", "padEast", "padWest"]) {
-    (function() {
-      var sprite = sprites[key];
-      var elt = sprite.element;
-      var event = sprite.event;
+  // The number of balls already launched.
+  // Used to generate id of new balls.
+  Ball._counter = 0;
 
-      // Touch-based control
-      elt.addEventListener("touchstart", function(e) {
-      });
-      elt.addEventListener("touchmove", function(e) {
-        event.pageX = e.pageX;
-        event.pageY = e.pageY;
-      });
+  // The number of balls prepared but not launched yet.
+  // These balls will be launched on the next call to Ball.flushPending
+  Ball._pendingBalls = [];
 
-      // Mouse-based control
-      // (used for testing)
-      document.body.addEventListener("mousemove", function(e) {
-        event.pageX = e.pageX;
-        event.pageY = e.pageY;
-      });
-      elt.addEventListener("mouseleave", function(e) {
-      });
-    })();
+  /**
+   *
+   */
+  Ball.prototype.writeToDOM = function() {
+    // Clear any temporary CSS
+    if (!this._classInitialized) {
+      this.element.classList.remove("init");
+      this._classInitialized = true;
+    }
+    Sprite.prototype.writeToDOM.call(this);
+  };
+
+  /**
+   * Prepare a new ball for launch.
+   */
+  Ball.prepare = function() {
+    var id = "ball_" + Ball._counter++;
+    var element = document.createElement("div");
+    element.id = id;
+    element.className = "ball";
+    element.textContent = "B" + Ball._counter;
+    $("screen").appendChild(element);
+    this._pendingBalls.push(id);
+  };
+
+  /**
+   * Launch any prepared ball.
+   */
+  Ball.flushPending = function() {
+    if (!this._pendingBalls.length) {
+      return;
+    }
+    var id = this._pendingBalls.pop();
+    var ball = new Ball(id);
+
+    ball.xpos = "center";
+    ball.ypos = "center";
+    ball.event.angle = 2 * Math.random() * Math.PI;
+    ball.event.dx = Math.round(Math.cos(ball.event.angle) * 100);
+    ball.event.dy = Math.round(Math.sin(ball.event.angle) * 100);
+    ball.event.speed = Game.Config.initialBallSpeed;
+
+    // Hack: Initially, we actually display the ball on the top left
+    // but we want everything to happen as if it were centered.
+    ball.x = ball.nextX;
+    ball.y = ball.nextY;
+
+
+    Ball.balls.push(ball);
+    sprites.add(ball);
+  };
+
+
+  /**
+   * The set of all sprites
+   */
+  var sprites = new Set();
+
+  // Shortcut: an array with all the pads
+  var pads = [];
+
+  // Initialize sprites
+  var padNorth = new Sprite("pad_north");
+  var padSouth = new Sprite("pad_south");
+  var padEast = new Sprite("pad_east");
+  var padWest = new Sprite("pad_west");
+
+  padNorth.setPosition("center", "top");
+  padSouth.setPosition("center", "bottom");
+  padEast.setPosition("left", "center");
+  padWest.setPosition("right", "center");
+  for (var pad of [padNorth, padSouth, padEast, padWest]) {
+    pads.push(pad);
+    sprites.add(pad);
   }
+
+  sprites.forEach(function (sprite) {
+    sprite.writeToDOM();
+  });
+
+  function onmove(e) {
+    for (var pad of pads) {
+      pad.event.pageX = e.pageX;
+      pad.event.pageY = e.pageY;
+    }
+  }
+  document.body.addEventListener("mousemove", onmove);
+  document.body.addEventListener("touchstart", onmove);
+  document.body.addEventListener("touchmove", onmove);
 
 
   var nextFrame = function() {
@@ -287,7 +357,12 @@
     // Otherwise, we end up recomputing the layout several times
     // for a frame, which is very much not good.
 
-    sprites.readFromDOM();
+    sprites.forEach(function (sprite) {
+      sprite.readFromDOM();
+    });
+
+    Ball.flushPending();
+
     width = window.innerWidth;
     height = window.innerHeight;
 
@@ -298,51 +373,52 @@
 
     // FIXME: Handle pause
 
-    // Bounce on walls
 
-    var horizontalBounce = false;
-    var verticalBounce = false;
+    // Handle ball bouncing
+    for (var ball of Ball.balls) {
+      var horizontalBounce = false;
+      var verticalBounce = false;
+      if (ball.event.dx < 0) {
+        horizontalBounce = ball.x <= 0 || ball.isCollidingWithAnyPad("E", sprites.padEast);
+      } else if (ball.event.dx > 0) {
+        horizontalBounce = ball.E >= width || ball.isCollidingWithAnyPad("W", sprites.padWest);
+      }
 
-    if (sprites.ball.event.dx < 0) {
-      horizontalBounce = sprites.ball.x <= 0 || isCollidingWithAnyPad("E", sprites.padEast);
-    } else if (sprites.ball.event.dx > 0) {
-      horizontalBounce = sprites.ball.E >= width || isCollidingWithAnyPad("W", sprites.padWest);
+      if (ball.event.dy < 0) {
+        verticalBounce = ball.y <= 0 || ball.isCollidingWithAnyPad("S", sprites.padSouth);
+      } else if (ball.event.dy > 0) {
+        verticalBounce = ball.S >= height|| ball.isCollidingWithAnyPad("N", sprites.padNorth);
+      }
+      if (horizontalBounce) {
+        ball.event.dx = -ball.event.dx;
+      }
+      if (verticalBounce) {
+        ball.event.dy = -ball.event.dy;
+      }
     }
 
-    if (sprites.ball.event.dy < 0) {
-      verticalBounce = sprites.ball.y <= 0 || isCollidingWithAnyPad("S", sprites.padSouth);
-    } else if (sprites.ball.event.dy > 0) {
-      verticalBounce = sprites.ball.S >= height|| isCollidingWithAnyPad("N", sprites.padNorth);
-    }
-
-    if (horizontalBounce) {
-      sprites.ball.event.dx = -sprites.ball.event.dx;
-    }
-    if (verticalBounce) {
-      sprites.ball.event.dy = -sprites.ball.event.dy;
-    }
-
-    // FIXME: Bounce on sprites
 
     // Update position of sprites
     // Note that we set both x and y, even for sprites that can move only
     // laterally/vertically, to ensure that we keep the game flowing even
     // in case of screen resize or orientation change.
-    sprites.padNorth.nextX = sprites.padNorth.event.pageX;
-    sprites.padNorth.ypos = "top";
+    padNorth.nextX = padNorth.event.pageX;
+    padNorth.ypos = "top";
 
-    sprites.padSouth.nextX = sprites.padSouth.event.pageX;
-    sprites.padSouth.ypos = "bottom";
+    padSouth.nextX = padSouth.event.pageX;
+    padSouth.ypos = "bottom";
 
-    sprites.padEast.nextY = sprites.padEast.event.pageY;
-    sprites.padEast.xpos = "right";
+    padEast.nextY = padEast.event.pageY;
+    padEast.xpos = "right";
 
-    sprites.padWest.nextY = sprites.padWest.event.pageY;
-    sprites.padWest.xpos = "left";
+    padWest.nextY = padWest.event.pageY;
+    padWest.xpos = "left";
 
 
-    sprites.ball.nextX = sprites.ball.x + Math.round(sprites.ball.event.dx * sprites.ball.event.speed * deltaT);
-    sprites.ball.nextY = sprites.ball.y + Math.round(sprites.ball.event.dy * sprites.ball.event.speed * deltaT);
+    for (ball of Ball.balls) {
+      ball.nextX = ball.x + Math.round(ball.event.dx * ball.event.speed * deltaT);
+      ball.nextY = ball.y + Math.round(ball.event.dy * ball.event.speed * deltaT);
+    }
 
     // FIXME: Handle health, win/lose
 
@@ -350,9 +426,18 @@
 
     // FIXME: Handle score
 
-    // -------- Wrote to DOM -------------
+    // -------- Write to DOM -------------
 
-    sprites.writeToDOM();
+    if (timeStamps.currentFrame - timeStamps.latestBallLaunch >=
+      Game.Config.intervalBetweenBalls) {
+      Ball.prepare();
+      timeStamps.latestBallLaunch = timeStamps.currentFrame;
+    }
+    sprites.forEach(function (sprite) {
+      sprite.writeToDOM();
+    });
+    screen.style.width = width;
+    screen.style.height = height;
 
     // -------- Write to DOM -------------
 
