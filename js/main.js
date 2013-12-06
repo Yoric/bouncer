@@ -1,6 +1,13 @@
 (function bouncer() {
   "use strict";
 
+  var Game;
+  if (typeof window.Game == "undefined") {
+    Game = window.Game = { };
+  } else {
+    Game = window.Game;
+  }
+
   var $ = document.getElementById.bind(document);
   var width = window.innerWidth;
   var height = window.innerHeight;
@@ -11,6 +18,11 @@
     currentFrame: Date.now(),
   };
 
+  /**
+   * A sprite, i.e. a moving object displayed on screen.
+   *
+   * @constructor
+   */
   function Sprite(id) {
     this.id = id;
     this.element = document.getElementById(id);
@@ -116,9 +128,24 @@
       }
     },
 
+    /**
+     * Determine whether an incoming `sprite` can collide/bounce on
+     * `this` sprite.
+     *
+     * @param {string} comingFrom The direction from which `sprite` is
+     * coming. Must be one of "W", "E", "N", "S". In the general case,
+     * `sprite` is not coming from such a restrictive direction, but
+     * rather from e.g. the NW quadrant. In this case, the method should
+     * be called once with argument "N" and once with argument "W".
+     * @param {Sprite} sprite The incoming sprite.
+     *
+     * @return {boolean} true If there is a collision between `this`
+     * sprite and `sprite`.
+     */
     isCollidingWith: function(comingFrom, sprite) {
       var centerX = sprite.centerX;
       var centerY = sprite.centerY;
+      var between = Game.Utils.between; // Import utility function
       var result;
       switch (comingFrom) {
         case "W":
@@ -140,26 +167,23 @@
         default:
           throw new Error("Unknown direction: " + comingFrom);
       }
-      if (comingFrom == "E" && result) {
-        console.log("Collision from", comingFrom, this.id, sprite.W, this.E);
-      }
       return result;
     }
   };
 
-  function between(x, a, b) {
-    if (a > b) {
-      throw new Error("Incorrect parameters for between");
-    }
-    return a <= x && x <= b;
-  }
-
+  /**
+   * An object regrouping all the sprites.
+   */
   var sprites = {
     padNorth: new Sprite("pad_north"),
     padSouth: new Sprite("pad_south"),
     padEast: new Sprite("pad_east"),
     padWest: new Sprite("pad_west"),
     ball: new Sprite("ball"),
+
+    /**
+     * Call readFromDOM on all the sprites
+     */
     readFromDOM: function() {
       for (var key of Object.keys(this)) {
         var sprite = this[key];
@@ -168,6 +192,10 @@
         }
       }
     },
+
+    /**
+     * Call writeToDOM on all the sprites
+     */
     writeToDOM: function() {
       for (var key of Object.keys(this)) {
         var sprite = this[key];
@@ -178,10 +206,34 @@
     },
   };
 
+  // Shortcut: an array with all the pads
   var pads = Object.freeze([sprites.padNorth,
     sprites.padSouth,
     sprites.padEast,
     sprites.padWest]);
+
+  /**
+   * Determine whether the ball is colliding with any pad.
+   *
+   * @param {string} comingFrom The direction from which the
+   * ball is coming, one of "N", "S", "E", "W".
+   * @param {Sprite} exclude A pad to exclude from the search as we
+   * already know no collision can take place with that pad.
+   *
+   * @return {boolean} true If any collision.
+   */
+  function isCollidingWithAnyPad(comingFrom, exclude) {
+      var ball = sprites.ball;
+      for (var pad of pads) {
+        if (pad == exclude) {
+          continue;
+        }
+        if (pad.isCollidingWith(comingFrom, ball)) {
+          return true;
+        }
+      }
+      return false;
+    }
 
   // Set initial positions
   sprites.readFromDOM();
@@ -198,7 +250,7 @@
   sprites.ball.event.angle = 2 * Math.random() * Math.PI;
   sprites.ball.event.dx = Math.round(Math.cos(sprites.ball.event.angle) * 100);
   sprites.ball.event.dy = Math.round(Math.sin(sprites.ball.event.angle) * 100);
-  sprites.ball.event.speed = .01;
+  sprites.ball.event.speed = window.Game.Config.initialBallSpeed;
   sprites.writeToDOM();
 
   for (var key of ["padNorth", "padSouth", "padEast", "padWest"]) {
@@ -246,37 +298,21 @@
 
     // FIXME: Handle pause
 
-    // FIXME: Handle bounce
-
-
     // Bounce on walls
 
     var horizontalBounce = false;
     var verticalBounce = false;
 
-    function collide(comingFrom, exclude) {
-      var ball = sprites.ball;
-      for (var pad of pads) {
-        if (pad == exclude) {
-          continue;
-        }
-        if (pad.isCollidingWith(comingFrom, ball)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
     if (sprites.ball.event.dx < 0) {
-      horizontalBounce = sprites.ball.x <= 0 || collide("E", sprites.padEast);
+      horizontalBounce = sprites.ball.x <= 0 || isCollidingWithAnyPad("E", sprites.padEast);
     } else if (sprites.ball.event.dx > 0) {
-      horizontalBounce = sprites.ball.E >= width || collide("W", sprites.padWest);
+      horizontalBounce = sprites.ball.E >= width || isCollidingWithAnyPad("W", sprites.padWest);
     }
 
     if (sprites.ball.event.dy < 0) {
-      verticalBounce = sprites.ball.y <= 0 || collide("S", sprites.padSouth);
+      verticalBounce = sprites.ball.y <= 0 || isCollidingWithAnyPad("S", sprites.padSouth);
     } else if (sprites.ball.event.dy > 0) {
-      verticalBounce = sprites.ball.S >= height|| collide("N", sprites.padNorth);
+      verticalBounce = sprites.ball.S >= height|| isCollidingWithAnyPad("N", sprites.padNorth);
     }
 
     if (horizontalBounce) {
