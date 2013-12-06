@@ -34,6 +34,8 @@ div.pad.vertical {
 #ball {
     position: absolute;
     font-size: x-large;
+    background-color: red;
+    z-index: 5;
 }
 
 #console {

@@ -67,6 +67,12 @@
     get S() {
       return this.y + this.height;
     },
+    get centerX() {
+      return this.x + this.width / 2;
+    },
+    get centerY() {
+      return this.y + this.height / 2;
+    },
 
     /**
      * Set the x position
@@ -108,9 +114,45 @@
         default:
           throw new Error("Unknown y position: " + arg);
       }
-    }
+    },
 
+    isCollidingWith: function(comingFrom, sprite) {
+      var centerX = sprite.centerX;
+      var centerY = sprite.centerY;
+      var result;
+      switch (comingFrom) {
+        case "W":
+            result = between(sprite.E, this.W, this.E)
+              && between(sprite.centerY, this.N, this.S);
+            break;
+        case "E":
+            result = between(sprite.W, this.W, this.E)
+              && between(sprite.centerY, this.N, this.S);
+          break;
+        case "N":
+            result = between(sprite.S, this.N, this.S)
+              && between(sprite.centerX, this.W, this.E);
+            break;
+        case "S":
+            result = between(sprite.N, this.N, this.S)
+              && between(sprite.centerX, this.W, this.E);
+          break;
+        default:
+          throw new Error("Unknown direction: " + comingFrom);
+      }
+      if (comingFrom == "E" && result) {
+        console.log("Collision from", comingFrom, this.id, sprite.W, this.E);
+      }
+      return result;
+    }
   };
+
+  function between(x, a, b) {
+    if (a > b) {
+      throw new Error("Incorrect parameters for between");
+    }
+    return a <= x && x <= b;
+  }
 
   var sprites = {
     padNorth: new Sprite("pad_north"),
@@ -212,37 +254,29 @@
     var horizontalBounce = false;
     var verticalBounce = false;
 
-    function collide(exclude) {
+    function collide(comingFrom, exclude) {
       var ball = sprites.ball;
       for (var pad of pads) {
         if (pad == exclude) {
           continue;
         }
-        if (pad.E < ball.W
-            || pad.W > ball.E) {
-          // The ball is misaligned horizontally
-          continue;
+        if (pad.isCollidingWith(comingFrom, ball)) {
+          return true;
         }
-        if (pad.S < ball.N ||
-            pad.N > ball.S) {
-           // The ball is misaligned vertically
-          continue;
-        }
-        return true;
       }
       return false;
     }
 
     if (sprites.ball.event.dx < 0) {
-      horizontalBounce = sprites.ball.x <= 0 || collide(sprites.padEast);
+      horizontalBounce = sprites.ball.x <= 0 || collide("E", sprites.padEast);
     } else if (sprites.ball.event.dx > 0) {
-      horizontalBounce = sprites.ball.E >= width || collide(sprites.padWest);
+      horizontalBounce = sprites.ball.E >= width || collide("W", sprites.padWest);
     }
 
     if (sprites.ball.event.dy < 0) {
-      verticalBounce = sprites.ball.y <= 0 || collide(sprites.padSouth);
+      verticalBounce = sprites.ball.y <= 0 || collide("S", sprites.padSouth);
     } else if (sprites.ball.event.dy > 0) {
-      verticalBounce = sprites.ball.S >= height|| collide(sprites.padNorth);
+      verticalBounce = sprites.ball.S >= height|| collide("N", sprites.padNorth);
     }
 
     if (horizontalBounce) {
