@@ -46,7 +46,10 @@
    * @constructor
    */
   function Sprite(id) {
+    // The id of the DOM element
     this.id = id;
+
+    // The DOM element and its CSS stylesheet
     this.element = document.getElementById(id);
     this.style = this.element.style;
 
@@ -259,7 +262,7 @@
   Ball._pendingBalls = [];
 
   /**
-   *
+   * If necessary, remove any temporary CSS, then write to DOM.
    */
   Ball.prototype.writeToDOM = function() {
     // Clear any temporary CSS
@@ -277,7 +280,8 @@
     var id = "ball_" + Ball._counter++;
     var element = document.createElement("div");
     element.id = id;
-    element.className = "ball";
+    element.classList.add("ball");
+    element.classList.add("init");
     element.textContent = "B" + Ball._counter;
     $("screen").appendChild(element);
     this._pendingBalls.push(id);
@@ -293,6 +297,7 @@
     var id = this._pendingBalls.pop();
     var ball = new Ball(id);
 
+    // Set up initial position
     ball.xpos = "center";
     ball.ypos = "center";
     ball.event.angle = 2 * Math.random() * Math.PI;
