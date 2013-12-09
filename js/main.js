@@ -360,6 +360,7 @@
     Pause.resume();
   }
   window.addEventListener("mousemove", onmove);
+  window.addEventListener("mouseup", ontouch);
   window.addEventListener("touchstart", ontouch);
   window.addEventListener("touchmove", ontouch);
 
