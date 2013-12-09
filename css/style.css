@@ -54,7 +54,7 @@ div.ball {
     border-style: solid;
     border-radius: 100%;
     position: absolute;
-    font-size: x-large;
+    font-size: 0;
     z-index: 5;
 }
 
