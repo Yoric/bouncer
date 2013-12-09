@@ -65,3 +65,21 @@ div.ball.init {
        ball creation. This is removed on the first call to writeToDOM.*/
     visibility: hidden;
 }
+
+
+/*
+  Messages
+*/
+
+div#message {
+    font-size: xx-large;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20%;
+    visibility: hidden;
+}
+
+div#message.visible {
+    visibility: visible;
+}

@@ -10,6 +10,7 @@
 
   var $ = document.getElementById.bind(document);
   var screen = $("screen");
+  var eltMessage = $("message");
   var width = window.innerWidth;
   var height = window.innerHeight;
 
@@ -343,6 +344,9 @@
     sprite.writeToDOM();
   });
 
+
+  // Handle events
+
   function onmove(e) {
     for (var pad of pads) {
       pad.event.pageX = e.pageX;
@@ -351,9 +355,86 @@
     e.stopPropagation();
     e.preventDefault();
   }
+  function ontouch(e) {
+    onmove(e);
+    Pause.resume();
+  }
   window.addEventListener("mousemove", onmove);
-  window.addEventListener("touchstart", onmove);
-  window.addEventListener("touchmove", onmove);
+  window.addEventListener("touchstart", ontouch);
+  window.addEventListener("touchmove", ontouch);
+
+  /**
+   * An object centralizing pause information.
+   */
+  var Pause = {
+    /**
+     * true if the game is on pause, false otherwise
+     */
+    isPaused: false,
+
+    /**
+     * Put the game on pause.
+     *
+     * Has no effect if the game is already on pause.
+     */
+    start: function() {
+      Pause.isPaused = true;
+      eltMessage.classList.add("visible");
+      eltMessage.textContent = "Pause";
+    },
+
+    /**
+     * Resume the game.
+     *
+     * Has no effect if the game is not on pause.
+     */
+    resume: function() {
+      if (!Pause.isPaused) {
+        return;
+      }
+      Pause.isPaused = false;
+      eltMessage.classList.remove("visible");
+
+      // Make sure that the game doesn't freak out by launching balls,
+      // increasing speed, etc.
+      var now = Date.now();
+      timeStamps.previousFrame = now - 15;
+      timeStamps.currentFrame = now;
+      timeStamps.latestBallLaunch = now;
+
+      // Resume game
+      requestAnimationFrame(loop);
+    },
+
+    /**
+     * Switch between on pause/out of pause.
+     */
+    revert: function() {
+      if (Pause.isPaused) {
+        Pause.resume();
+      } else {
+        Pause.start();
+      }
+    }
+  };
+  window.addEventListener("keydown", function(event) {
+    var code = event.keyCode || event.which || null;
+    if (code == null) {
+      // No code information, this must be an old version of
+      // Internet Explorer
+      return;
+    }
+    if (code != window.KeyEvent.DOM_VK_SPACE) {
+      // Not the space key
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    Pause.revert();
+  });
+  window.addEventListener("blur", function() {
+    Pause.start();
+  });
 
 
   var nextFrame = function() {
@@ -378,8 +459,10 @@
 
     var deltaT = timeStamps.currentFrame - timeStamps.previousFrame;
 
-    // FIXME: Handle pause
-
+    // Return pause
+    if (Pause.isPaused) {
+      return false;
+    }
 
     // Handle ball bouncing
     for (var ball of Ball.balls) {
@@ -448,15 +531,18 @@
 
     // -------- Write to DOM -------------
 
+    return true;
   };
 
   nextFrame();
 
   // Main loop
-  requestAnimationFrame(function loop() {
+  function loop() {
     timeStamps.previousFrame = timeStamps.currentFrame;
     timeStamps.currentFrame = Date.now();
-    nextFrame();
-    requestAnimationFrame(loop);
-  });
+    if (nextFrame()) {
+      requestAnimationFrame(loop);
+    }
+  };
+  requestAnimationFrame(loop);
 })();
