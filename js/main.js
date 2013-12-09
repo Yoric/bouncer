@@ -348,10 +348,12 @@
       pad.event.pageX = e.pageX;
       pad.event.pageY = e.pageY;
     }
+    e.stopPropagation();
+    e.preventDefault();
   }
-  document.body.addEventListener("mousemove", onmove);
-  document.body.addEventListener("touchstart", onmove);
-  document.body.addEventListener("touchmove", onmove);
+  window.addEventListener("mousemove", onmove);
+  window.addEventListener("touchstart", onmove);
+  window.addEventListener("touchmove", onmove);
 
 
   var nextFrame = function() {
