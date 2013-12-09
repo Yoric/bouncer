@@ -242,12 +242,21 @@
         continue;
       }
       if (pad.isCollidingWith(comingFrom, this)) {
-        return true;
+		this.changeBallColor();
+		return true;
       }
     }
     return false;
   };
-
+  
+   var tab =['blue','red','green','purple','black','orange'];
+  /* This function changes the color of the ball */
+  Ball.prototype.changeBallColor=function(colorBall){
+	var tabSize=tab.length;		
+	var i=(Math.floor(Math.random()*tabSize)+1);
+	this.style.borderColor=tab[i];
+  }
+  
   /**
    * All the balls currently on screen.
    */
@@ -459,4 +468,9 @@
     nextFrame();
     requestAnimationFrame(loop);
   });
+
+ 
+  
 })();
+
+
