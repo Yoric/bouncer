@@ -43,6 +43,14 @@ div.pad.vertical {
     width: 30px;
 }
 
+div#pad_north {
+    z-index: 2;
+}
+
+div#pad_south {
+    z-index: 2;
+}
+
 /*
   The ball
 */
@@ -55,7 +63,7 @@ div.ball {
     border-radius: 100%;
     position: absolute;
     font-size: 0;
-    z-index: 5;
+    z-index: 0;
 }
 
 
