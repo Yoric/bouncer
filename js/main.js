@@ -48,14 +48,13 @@
     * The score of the older frame
     */
     previous: -1,
-      
+
     /**
     * The score in the current frame
     */
-    current: 0,        
+    current: 0,
   };
-    
-    
+
    /**
    * A sprite, i.e. a moving object displayed on screen.
    *
@@ -266,7 +265,7 @@
     }
     return false;
   };
-  
+
   /**
    * A list of CSS values for colors for the ball.
    */
@@ -279,7 +278,7 @@
     var i = (Math.floor(Math.random() * COLOR_NAMES.length) + 1);
     this.style.borderColor = COLOR_NAMES[i];
   }
-  
+
   /**
    * All the balls currently on screen.
    */
@@ -346,7 +345,7 @@
     Ball.balls.push(ball);
     sprites.add(ball);
   };
-    
+
   /**
    * The set of all sprites
    */
@@ -517,20 +516,20 @@
         collisionWithVerticalPad = ball.isCollidingWithAnyPad("N", sprites.padNorth);
         verticalBounce = ball.S >= height || collisionWithVerticalPad;
       }
-        
+
       if (horizontalBounce) {
         ball.event.dx = -ball.event.dx;
       }
       if (verticalBounce) {
         ball.event.dy = -ball.event.dy;
       }
-        
-      // Update the current score    
+
+      // Update the current score
       if (collisionWithHorizontalPad || collisionWithVerticalPad) {
         score.current += Game.Config.Score.bounceOnPad;
       } else if (horizontalBounce || verticalBounce) {
         score.current += Game.Config.Score.bounceOnWall;
-      }      
+      }
     }
 
     // Update position of sprites
@@ -573,7 +572,7 @@
     });
     screen.style.width = width;
     screen.style.height = height;
-      
+
     // Update the score if it has changed
     if (score.current != score.previous) {
       eltScore.textContent = score.current;
