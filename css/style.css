@@ -24,6 +24,8 @@ body {
 
 div.pad {
     position: absolute;
+    left: 0;
+    top: 0;
     z-index: 1;
     text-align: center;
     border-style: solid;
@@ -54,6 +56,8 @@ div#pad_south {
   The ball
 */
 div.ball {
+    top: 0;
+    left: 0;
     width: 15px;
     height: 15px;
     color: white;

@@ -103,8 +103,7 @@
      * Write to the DOM the values of this.nextX, this.nextY
      */
     writeToDOM: function() {
-      this.style.left = this.nextX + "px";
-      this.style.top  = this.nextY + "px";
+      this.style.transform = "translate(" + this.nextX + "px, " + this.nextY + "px)";
     },
 
     // Utility methods
