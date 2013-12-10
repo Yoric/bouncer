@@ -70,7 +70,6 @@ div.ball.init {
 /*
   Messages
 */
-
 div#message {
     font-size: xx-large;
     text-align: center;
@@ -82,4 +81,13 @@ div#message {
 
 div#message.visible {
     visibility: visible;
+}
+
+
+/*
+  The design of score
+*/
+#score {
+    color: red;
+    float: right;
 }
