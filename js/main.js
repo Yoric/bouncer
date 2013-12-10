@@ -249,15 +249,17 @@
     return false;
   };
   
-  // This tab contains the list of colors the ball can take
-  var tabColors = ['blue' , 'red' , 'green' , 'purple' , 'black' , 'orange'];
+  /**
+   * A list of CSS values for colors for the ball.
+   */
+  var COLOR_NAMES = ['blue' , 'red' , 'green' , 'purple' , 'black' , 'orange'];
   /**
    * Change the color of the ball. This function is called when a ball touch a pad.
    * The color is taken randomly from tabColors.
    */
-  Ball.prototype.changeBallColor=function() {
-	var i = (Math.floor(Math.random()*tab.length)+1);
-	this.style.borderColor=tab[i];
+  Ball.prototype.changeBallColor = function() {
+    var i = (Math.floor(Math.random() * COLOR_NAMES.length) + 1);
+    this.style.borderColor = COLOR_NAMES[i];
   }
   
   /**
