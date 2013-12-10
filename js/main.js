@@ -249,11 +249,14 @@
     return false;
   };
   
-   var tab =['blue','red','green','purple','black','orange'];
-  /* This function changes the color of the ball */
-  Ball.prototype.changeBallColor=function(colorBall){
-	var tabSize=tab.length;		
-	var i=(Math.floor(Math.random()*tabSize)+1);
+  // This tab contains the list of colors the ball can take
+  var tabColors = ['blue' , 'red' , 'green' , 'purple' , 'black' , 'orange'];
+  /**
+   * Change the color of the ball. This function is called when a ball touch a pad.
+   * The color is taken randomly from tabColors.
+   */
+  Ball.prototype.changeBallColor=function() {
+	var i = (Math.floor(Math.random()*tab.length)+1);
 	this.style.borderColor=tab[i];
   }
   
@@ -468,9 +471,6 @@
     nextFrame();
     requestAnimationFrame(loop);
   });
-
- 
-  
 })();
 
 
