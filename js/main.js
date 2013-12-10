@@ -13,6 +13,7 @@
   var eltMessage = $("message");
   var width = window.innerWidth;
   var height = window.innerHeight;
+  var eltScore = $("score");
 
   /**
    * The time at which some events happened, in milliseconds since the epoch.
@@ -40,6 +41,22 @@
   };
 
   /**
+  * The different scores of the current game
+  */
+  var score = {
+    /**
+    * The score of the older frame
+    */
+    previous: -1,
+      
+    /**
+    * The score in the current frame
+    */
+    current: 0,        
+  };
+    
+    
+   /**
    * A sprite, i.e. a moving object displayed on screen.
    *
    * @param {string} id The id of the DOM element manipulated by
@@ -315,8 +332,7 @@
     Ball.balls.push(ball);
     sprites.add(ball);
   };
-
-
+    
   /**
    * The set of all sprites
    */
@@ -469,25 +485,39 @@
     for (var ball of Ball.balls) {
       var horizontalBounce = false;
       var verticalBounce = false;
+      var collisionWithHorizontalPad = false;
+      var collisionWithVerticalPad = false;
+
       if (ball.event.dx < 0) {
-        horizontalBounce = ball.x <= 0 || ball.isCollidingWithAnyPad("E", sprites.padEast);
+        collisionWithHorizontalPad = ball.isCollidingWithAnyPad("E", sprites.padEast);
+        horizontalBounce = ball.x <= 0 || collisionWithHorizontalPad;
       } else if (ball.event.dx > 0) {
-        horizontalBounce = ball.E >= width || ball.isCollidingWithAnyPad("W", sprites.padWest);
+        collisionWithHorizontalPad = ball.isCollidingWithAnyPad("W", sprites.padWest);
+        horizontalBounce = ball.E >= width || collisionWithHorizontalPad;
       }
 
       if (ball.event.dy < 0) {
-        verticalBounce = ball.y <= 0 || ball.isCollidingWithAnyPad("S", sprites.padSouth);
+        collisionWithVerticalPad = ball.isCollidingWithAnyPad("S", sprites.padSouth);
+        verticalBounce =  ball.y <= 0 || collisionWithVerticalPad;
       } else if (ball.event.dy > 0) {
-        verticalBounce = ball.S >= height|| ball.isCollidingWithAnyPad("N", sprites.padNorth);
+        collisionWithVerticalPad = ball.isCollidingWithAnyPad("N", sprites.padNorth);
+        verticalBounce = ball.S >= height || collisionWithVerticalPad;
       }
+        
       if (horizontalBounce) {
         ball.event.dx = -ball.event.dx;
       }
       if (verticalBounce) {
         ball.event.dy = -ball.event.dy;
       }
+        
+      // Update the current score    
+      if (collisionWithHorizontalPad || collisionWithVerticalPad) {
+        score.current += Game.Config.Score.bounceOnPad;
+      } else if (horizontalBounce || verticalBounce) {
+        score.current += Game.Config.Score.bounceOnWall;
+      }      
     }
-
 
     // Update position of sprites
     // Note that we set both x and y, even for sprites that can move only
@@ -529,6 +559,12 @@
     });
     screen.style.width = width;
     screen.style.height = height;
+      
+    // Update the score if it has changed
+    if (score.current != score.previous) {
+      eltScore.textContent = score.current;
+      score.previous = score.current;
+    }
 
     // -------- Write to DOM -------------
 
