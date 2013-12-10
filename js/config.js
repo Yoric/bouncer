@@ -20,14 +20,13 @@
 
     // The interval between balls, in milliseconds
     intervalBetweenBalls: 3000,
-      
+
     Score: {
       // add point when a ball touch the pad
       bounceOnPad: 10,
-      
-      // substract point when a ball touch the wall  
+
+      // substract point when a ball touch the wall
       bounceOnWall: -2,
-    }  
+    }
   };
-        
 })();
