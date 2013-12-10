@@ -26,8 +26,6 @@ div.pad {
     position: absolute;
     z-index: 1;
     text-align: center;
-    padding-top: auto;
-    badding-bottom: auto;
     border-style: solid;
     border-color: black;
     border-radius: 100%;
