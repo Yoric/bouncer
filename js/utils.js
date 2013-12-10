@@ -30,6 +30,30 @@
         throw new Error("Incorrect parameters for between");
       }
       return a <= x && x <= b;
+    },
+    
+    /**
+     * Restrict the position of point x to the segment define by [a , b]
+     *
+     * @param {number} x
+     * @param {number} a
+     * @param {number} b
+     *
+     * @return {x} if `a <= x <= b`;
+     * @return {a} if `x < a`;
+     * @return {b} if `x > b`;
+     * @throws {Error} If `b > a`
+     */
+    restrictToSegment: function(x, a, b) {
+      if (b > a) {
+        throw new Error("Incorrect parameters for between");
+      } else if (x < a) {
+        return a;
+      } else if(x > b) {
+        return b;
+      } else {
+        return x;
+      }
     }
   };
 })();
