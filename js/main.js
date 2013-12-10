@@ -307,6 +307,9 @@
    * Prepare a new ball for launch.
    */
   Ball.prepare = function() {
+    if (Ball.balls.length >= Game.Config.maxNumberBalls) {
+      return;
+    }
     var id = "ball_" + Ball._counter++;
     var element = document.createElement("div");
     element.id = id;
