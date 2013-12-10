@@ -51,7 +51,7 @@
         throw new Error("Incorrect parameters for restrictToSegment");
       } else if (x < a) {
         return a;
-      } else if(x > b) {
+      } else if (x > b) {
         return b;
       } else {
         return x;
