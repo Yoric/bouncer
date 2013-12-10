@@ -54,9 +54,36 @@
     */
     current: 0,        
   };
-    
-    
-   /**
+
+  /**
+   * Recent input (mouse moved, orientation changed, etc.)
+   */
+  var input = {
+    /**
+     * The latest known coordinates of the mouse cursor or finger
+     * on the touch screen.
+     */
+    pageX: width / 2,
+    pageY: height / 2,
+
+    /**
+     * The latest rotation of the device.
+     *
+     * Forward/backwards rotation, in degrees.
+     */
+    beta: 0,
+
+    /**
+     * The latest rotation of the device.
+     *
+     * Left/right rotation, in degrees.
+     */
+    gamma: 0,
+    left: 0,
+    up: 0
+  };
+
+  /**
    * A sprite, i.e. a moving object displayed on screen.
    *
    * @param {string} id The id of the DOM element manipulated by
@@ -332,7 +359,8 @@
     Ball.balls.push(ball);
     sprites.add(ball);
   };
-    
+
+
   /**
    * The set of all sprites
    */
@@ -360,14 +388,16 @@
     sprite.writeToDOM();
   });
 
+  var cloud = new Sprite("cloud");
+  cloud.setPosition("center", "center");
+  sprites.add(cloud);
+
 
   // Handle events
 
   function onmove(e) {
-    for (var pad of pads) {
-      pad.event.pageX = e.pageX;
-      pad.event.pageY = e.pageY;
-    }
+    input.pageX = e.pageX;
+    input.pageY = e.pageY;
     e.stopPropagation();
     e.preventDefault();
   }
@@ -379,6 +409,15 @@
   window.addEventListener("mouseup", ontouch);
   window.addEventListener("touchstart", ontouch);
   window.addEventListener("touchmove", ontouch);
+
+  function onrotate(e) {
+    input.beta = e.beta;
+    input.gamma = e.gamma;
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
+  window.addEventListener("deviceorientation", onrotate);
 
   /**
    * An object centralizing pause information.
@@ -441,14 +480,57 @@
       // Internet Explorer
       return;
     }
-    if (code != window.KeyEvent.DOM_VK_SPACE) {
-      // Not the space key
-      return;
+    var Keys = window.KeyEvent;
+
+    switch (code) {
+      case Keys.DOM_VK_SPACE:
+          Pause.revert();
+          break;
+      case Keys.DOM_VK_LEFT:
+          input.left += 1;
+          break;
+      case Keys.DOM_VK_RIGHT:
+          input.left -= 1;
+          break;
+      case Keys.DOM_VK_UP:
+          input.up += 1;
+          break;
+      case Keys.DOM_VK_DOWN:
+          input.up -= 1;
+          break;
+      default:
+        return;
     }
     event.preventDefault();
     event.stopPropagation();
-    Pause.revert();
   });
+/*
+  window.addEventListener("keyup", function(event) {
+    var code = event.keyCode || event.which || null;
+    if (code == null) {
+      // No code information, this must be an old version of
+      // Internet Explorer
+      return;
+    }
+    var Keys = window.KeyEvent;
+
+    switch (code) {
+      case Keys.DOM_VK_LEFT: // Fall through
+      case Keys.DOM_VK_RIGHT:
+          input.left = 0;
+          break;
+      case Keys.DOM_VK_UP: // Fall through
+      case Keys.DOM_VK_DOWN:
+          input.right = 0;
+          break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+  });
+*/
+
   window.addEventListener("blur", function() {
     Pause.start();
   });
@@ -481,8 +563,32 @@
       return false;
     }
 
-    // Handle ball bouncing
+    // Handle ball acceleration
+    var ddx = 0;
+    if (input.gamma) {
+      // Device orientation
+      ddx = Math.sin(input.gamma * Math.PI / 180) *
+        Game.Config.rotationAcceleration * deltaT;
+    } else if (input.left) {
+      ddx = - input.left * Game.Config.keyboardAcceleration * deltaT;
+      input.left = 0;
+    }
+    var ddy = 0;
+    if (input.beta) {
+      ddy = -Math.sin(Math.min(input.beta, 90) * Math.PI / 180) *
+        Game.Config.rotationAcceleration * deltaT;
+    } else if (input.up) {
+      ddy = -input.up * Game.Config.keyboardAcceleration * deltaT;
+      input.up = 0;
+    }
+
     for (var ball of Ball.balls) {
+      ball.event.dx += ddx;
+      ball.event.dy += ddy;
+    }
+
+    // Handle ball bouncing
+    for (ball of Ball.balls) {
       var horizontalBounce = false;
       var verticalBounce = false;
       var collisionWithHorizontalPad = false;
@@ -523,18 +629,20 @@
     // Note that we set both x and y, even for sprites that can move only
     // laterally/vertically, to ensure that we keep the game flowing even
     // in case of screen resize or orientation change.
-    padNorth.nextX = padNorth.event.pageX;
+    padNorth.nextX = input.pageX;
     padNorth.ypos = "top";
 
-    padSouth.nextX = padSouth.event.pageX;
+    padSouth.nextX = input.pageX;
     padSouth.ypos = "bottom";
 
-    padEast.nextY = padEast.event.pageY;
+    padEast.nextY = input.pageY;
     padEast.xpos = "right";
 
-    padWest.nextY = padWest.event.pageY;
+    padWest.nextY = input.pageY;
     padWest.xpos = "left";
 
+    cloud.xpos = "center";
+    cloud.ypos = "center";
 
     for (ball of Ball.balls) {
       ball.nextX = ball.x + Math.round(ball.event.dx * ball.event.speed * deltaT);
@@ -566,6 +674,23 @@
       score.previous = score.current;
     }
 
+    var cloudTransform = "";
+    if (ddx) {
+      cloudTransform += "rotateY(" + ddx + "deg) ";
+    }
+    if (ddy) {
+      cloudTransform += "rotateX(" + ddy + "deg) ";
+    }
+    for (ball of Ball.balls) {
+      ball.style.transform = cloudTransform;
+      console.log("Ball transform", ball.style.transform);
+    }
+/*
+    cloud.style.transform = cloudTransform;
+    if (cloudTransform) {
+      console.log("Cloud transform", cloudTransform, cloud.style.transform);
+    }
+*/
     // -------- Write to DOM -------------
 
     return true;

@@ -20,6 +20,11 @@
 
     // The interval between balls, in milliseconds
     intervalBetweenBalls: 3000,
+
+    // The acceleration corresponding to orienting the device fully
+    // in a direction, in pixels per milliseconds squared
+    rotationAcceleration: 1,
+    keyboardAcceleration: 1,
       
     Score: {
       // add point when a ball touch the pad

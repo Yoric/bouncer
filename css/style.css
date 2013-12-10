@@ -47,15 +47,20 @@ div.pad.vertical {
   The ball
 */
 div.ball {
-    width: 15px;
-    height: 15px;
+    width: 32px;
+    height: 32px;
     color: white;
+/*
     border-color: red;
     border-style: solid;
     border-radius: 100%;
+*/
     position: absolute;
     font-size: 0;
     z-index: 5;
+    background-image: url('../img/cloud.png');
+    background-size: contain;
+    background-repeat: none;
 }
 
 
@@ -91,3 +96,17 @@ div#message.visible {
     color: red;
     float: right;
 }
+
+/*
+  Acceleration indicator
+*/
+/*
+div#cloud {
+    position: absolute;
+    width: 128px;
+    height: 128px;
+    background-image: url('../img/cloud.png');
+    transition: transform .1s;
+    z: -1;
+}
+*/
