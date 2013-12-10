@@ -260,12 +260,26 @@
         continue;
       }
       if (pad.isCollidingWith(comingFrom, this)) {
-        return true;
+		this.changeBallColor();
+		return true;
       }
     }
     return false;
   };
-
+  
+  /**
+   * A list of CSS values for colors for the ball.
+   */
+  var COLOR_NAMES = ['blue' , 'red' , 'green' , 'purple' , 'black' , 'orange'];
+  /**
+   * Change the color of the ball. This function is called when a ball touch a pad.
+   * The color is taken randomly from tabColors.
+   */
+  Ball.prototype.changeBallColor = function() {
+    var i = (Math.floor(Math.random() * COLOR_NAMES.length) + 1);
+    this.style.borderColor = COLOR_NAMES[i];
+  }
+  
   /**
    * All the balls currently on screen.
    */
@@ -583,3 +597,5 @@
   };
   requestAnimationFrame(loop);
 })();
+
+
