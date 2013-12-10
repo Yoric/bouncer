@@ -258,7 +258,7 @@
         continue;
       }
       if (pad.isCollidingWith(comingFrom, this)) {
-		this.changeBallColor();
+        this.changeBallColor();
 		return true;
       }
     }
@@ -276,7 +276,7 @@
   Ball.prototype.changeBallColor = function() {
     var i = (Math.floor(Math.random() * COLOR_NAMES.length) + 1);
     this.style.borderColor = COLOR_NAMES[i];
-  }
+  };
 
   /**
    * All the balls currently on screen.
