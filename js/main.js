@@ -523,19 +523,22 @@
     // Note that we set both x and y, even for sprites that can move only
     // laterally/vertically, to ensure that we keep the game flowing even
     // in case of screen resize or orientation change.
-    padNorth.nextX = padNorth.event.pageX;
+    padNorth.nextX = padNorth.event.pageX - padNorth.width / 2;
+    padNorth.nextX = Game.Utils.restrictToSegment(padNorth.nextX, 0, width - padNorth.width);
     padNorth.ypos = "top";
 
-    padSouth.nextX = padSouth.event.pageX;
+    padSouth.nextX = padSouth.event.pageX - padSouth.width / 2;
+    padSouth.nextX = Game.Utils.restrictToSegment(padSouth.nextX, 0, width - padSouth.width);
     padSouth.ypos = "bottom";
 
-    padEast.nextY = padEast.event.pageY;
+    padEast.nextY = padEast.event.pageY - padEast.height / 2;
+    padEast.nextY = Game.Utils.restrictToSegment(padEast.nextY, 0, width - padEast.height);
     padEast.xpos = "right";
 
-    padWest.nextY = padWest.event.pageY;
+    padWest.nextY = padWest.event.pageY - padWest.height / 2;
+    padWest.nextY = Game.Utils.restrictToSegment(padWest.nextY, 0, width - padWest.height);
     padWest.xpos = "left";
-
-
+    
     for (ball of Ball.balls) {
       ball.nextX = ball.x + Math.round(ball.event.dx * ball.event.speed * deltaT);
       ball.nextY = ball.y + Math.round(ball.event.dy * ball.event.speed * deltaT);
