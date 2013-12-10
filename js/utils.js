@@ -27,6 +27,7 @@
      */
     between: function(x, a, b) {
       if (a > b) {
+        console.error("Incorrect parameters for between", x, a, b, "at", new Error().stack);
         throw new Error("Incorrect parameters for between");
       }
       return a <= x && x <= b;
@@ -46,7 +47,8 @@
      */
     restrictToSegment: function(x, a, b) {
       if (b > a) {
-        throw new Error("Incorrect parameters for between");
+        console.error("Incorrect parameters for restrictToSegment", x, a, b, "at", new Error().stack);
+        throw new Error("Incorrect parameters for restrictToSegment");
       } else if (x < a) {
         return a;
       } else if(x > b) {
