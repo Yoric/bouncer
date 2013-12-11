@@ -648,11 +648,11 @@
     padSouth.ypos = "bottom";
 
     padEast.nextY = padEast.event.pageY - padEast.height / 2;
-    padEast.nextY = Game.Utils.restrictToSegment(padEast.nextY, 0, width - padEast.height);
+    padEast.nextY = Game.Utils.restrictToSegment(padEast.nextY, 0, height - padEast.height);
     padEast.xpos = "right";
 
     padWest.nextY = padWest.event.pageY - padWest.height / 2;
-    padWest.nextY = Game.Utils.restrictToSegment(padWest.nextY, 0, width - padWest.height);
+    padWest.nextY = Game.Utils.restrictToSegment(padWest.nextY, 0, height - padWest.height);
     padWest.xpos = "left";
     
     for (ball of Ball.balls) {
