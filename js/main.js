@@ -668,10 +668,18 @@
 
     // -------- Write to DOM -------------
 
+    // Prepare new balls
     if (timeStamps.currentFrame - timeStamps.latestBallLaunch >=
       Game.Config.intervalBetweenBalls) {
       Ball.prepare();
       timeStamps.latestBallLaunch = timeStamps.currentFrame;
+    }
+
+    // Update ball colors
+    for (ball of Ball.balls) {
+      if (ball.bounceX.bounceOnPad || ball.bounceY.bounceOnPad) {
+        ball.changeBallColor();
+      }
     }
     sprites.forEach(function (sprite) {
       sprite.writeToDOM();
