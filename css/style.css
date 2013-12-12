@@ -102,3 +102,12 @@ div#message.visible {
     color: red;
     float: right;
 }
+
+/*
+  Debugging utilities
+ */
+canvas.debug {
+    position: absolute;
+    left: 0;
+    top: 0;
+}

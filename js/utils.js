@@ -32,7 +32,7 @@
       }
       return a <= x && x <= b;
     },
-    
+
     /**
      * Restrict the position of point x to the segment define by [a , b]
      *
@@ -56,6 +56,33 @@
       } else {
         return x;
       }
-    }
+    },
+
+    /**
+     * Get the angle corresponding to a vector
+     *
+     * @param {number} dx A unit vector.
+     * @param {number} dy
+     *
+     * @return {number} An angle r in radians such that `Math.cos(r) == dx`
+     * and `Math.sin(r) == dy`.
+     */
+    getAngle: function(dx, dy) {
+      var angle;
+      if (dx == 0) {
+        angle = Math.PI / 2;
+        if (dy < 0) {
+          return -angle;
+        }
+        return angle;
+      }
+      angle = Math.atan(dy / dx);
+      if (dx < 0) {
+        return angle + Math.PI;
+      }
+      return angle;
+    },
+
+
   };
 })();

@@ -30,7 +30,16 @@
 
       // substract point when a ball touch the wall
       bounceOnWall: -2,
+    },
 
+    // Activate or deactivate several debug utilities/cheat modes
+    Debug: {
+      // Generally, |false|. If |true|, draw a graphic representation
+      // of bounces.
+      bounces: true,
+
+      // Generally, |null|. Otherwise, the angle for *all* new balls.
+      startAngle: null,
     }
   };
 })();
