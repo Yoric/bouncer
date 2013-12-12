@@ -59,6 +59,24 @@
     },
 
     /**
+     * An indication of the position of a number in a segment.
+     *
+     * @param {number} x A number between a and b
+     * @param {number} a
+     * @param {number} b
+     *
+     * @return {number} A number in [-1, 1] representing how
+     * close `x` is to either `a` or `b`: -1 if x == a,
+     * +1 if x == b, 0 if x == (a + b) / 2, etc.
+     */
+    howCloseTo: function(x, a, b) {
+      if (a >= b) {
+        throw new Error("Incorrect parameters for closeTo");
+      }
+      return 2 * (x - (a + b) / 2) / (b - a);
+    },
+
+    /**
      * Get the angle corresponding to a vector
      *
      * @param {number} dx A unit vector.

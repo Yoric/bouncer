@@ -16,7 +16,7 @@
 
   window.Game.Config = {
     // The starting speed of balls
-    initialBallSpeed: .01,
+    initialBallSpeed: .3,
 
     // The interval between balls, in milliseconds
     intervalBetweenBalls: 3000,
@@ -36,7 +36,7 @@
     Debug: {
       // Generally, |false|. If |true|, draw a graphic representation
       // of bounces.
-      bounces: true,
+      bounces: false,
 
       // Generally, |null|. Otherwise, the angle for *all* new balls.
       startAngle: null,

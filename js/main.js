@@ -83,7 +83,11 @@
     this.height = null;
 
     // An object used to store event information for this sprite
-    this.event = {};
+    this.event = {
+      // The coordinates of the mouse
+      pageX: 0,
+      pageY: 0
+    };
 
     this.readFromDOM();
   }
@@ -192,35 +196,50 @@
      * be called once with argument "N" and once with argument "W".
      * @param {Sprite} sprite The incoming sprite.
      *
-     * @return {boolean} true If there is a collision between `this`
-     * sprite and `sprite`.
+     * @return {number} If there is a collision between `this` sprite
+     * and `sprite`, return a number between -0.5 and 0.5 determining
+     * where on `this` the collision took place. The return value is
+     * close to -0.5 if the collision took place close to the lowest
+     * coordinate of `this` (W or N, depending on `comingFrom`) and
+     * close to 0.5 if the collision took place close to the highest
+     * coordinate of `this` (E or S, depending on `comingFrom`).
+     * If there was no collision, return NaN.
      */
-    isCollidingWith: function(comingFrom, sprite) {
+    getCollisionWith: function(comingFrom, sprite) {
       var centerX = sprite.centerX;
       var centerY = sprite.centerY;
-      var between = Game.Utils.between; // Import utility function
-      var result;
+      var between = Game.Utils.between; // Import utility functions
+      var closeTo = Game.Utils.howCloseTo;
+
       switch (comingFrom) {
         case "W":
-            result = between(sprite.E, this.W, this.E)
-              && between(sprite.centerY, this.N, this.S);
-            break;
+            if (between(sprite.E, this.W, this.E)
+              && between(sprite.centerY, this.N, this.S)) {
+              return closeTo(sprite.E, this.W, this.E);
+            }
+            return NaN;
         case "E":
-            result = between(sprite.W, this.W, this.E)
-              && between(sprite.centerY, this.N, this.S);
-          break;
+            if (between(sprite.W, this.W, this.E)
+              && between(sprite.centerY, this.N, this.S)) {
+              return closeTo(sprite.W, this.W, this.E);
+            }
+            return NaN;
         case "N":
-            result = between(sprite.S, this.N, this.S)
-              && between(sprite.centerX, this.W, this.E);
-            break;
+            if (between(sprite.S, this.N, this.S)
+              && between(sprite.centerX, this.W, this.E)) {
+              return closeTo(sprite.S, this.N, this.S);
+            }
+            return NaN;
         case "S":
-            result = between(sprite.N, this.N, this.S)
-              && between(sprite.centerX, this.W, this.E);
-          break;
+            if (between(sprite.N, this.N, this.S)
+              && between(sprite.centerX, this.W, this.E)) {
+              return closeTo(sprite.N, this.N, this.S);
+            }
+            return NaN;
         default:
           throw new Error("Unknown direction: " + comingFrom);
       }
-      return result;
+      return NaN;
     }
   };
 
@@ -238,31 +257,73 @@
     // We start our balls with some temporary CSS.
     // Set to false once the temporary CSS has been cleaned up
     this._classInitialized = false;
+
+    // The unit vector of speed for this ball
+    this.event.dx = 0;
+    this.event.dy = 0;
+
+    // Information on bouncing
+    this.bounceX = new Bouncer(this, pads);
+    this.bounceY = new Bouncer(this, pads);
   }
   // Inherit prototype
   Ball.prototype = Object.create(Sprite.prototype);
 
   /**
-   * Determine whether the ball is colliding with any pad.
+   * An object holding information regarding bouncing along vertical
+   * obstacles (respectively horizontal obstacles).
+   */
+  function Bouncer(ball, pads) {
+    this.ball = ball;
+    this.pads = pads;
+    this.bounceOnWall = false;
+    this.bounceOnPad = false;
+    /**
+     * An indication of how we need to bounce this ball against a
+     * vertical (respectively horizontal) obstacle, as a number
+     * between -1 (bounce somewhat towards the North, respectively
+     * West) and 1 (bounce somewhat towards the South, respectively
+     * East) or NaN if the ball didn't bounce at all on a vertical
+     * (respectively vertical) obstacle.
+     *
+     * Used to represent bouncing on non-flat surfaces.
+     */
+    this.bounce = NaN;
+  }
+
+  /**
+   * Determine whether the ball is colliding with any wall or pad,
+   * update internal state accordingly.
    *
+   * @param {bool} wall Whether the ball is colliding with a wall
+   * already.
    * @param {string} comingFrom The direction from which the
    * ball is coming, one of "N", "S", "E", "W".
    * @param {Sprite} exclude A pad to exclude from the search as we
    * already know no collision can take place with that pad.
-   *
-   * @return {boolean} true If any collision.
    */
-  Ball.prototype.isCollidingWithAnyPad = function(comingFrom, exclude) {
-    for (var pad of pads) {
+  Bouncer.prototype.check = function(wall, comingFrom, exclude) {
+    if (wall) {
+      this.bounceOnWall = true;
+      this.bounceOnPad = false;
+      this.bounce = 0;
+      return;
+    }
+    for (var pad of this.pads) {
       if (pad == exclude) {
         continue;
       }
-      if (pad.isCollidingWith(comingFrom, this)) {
-        this.changeBallColor();
-		return true;
+      var bounce = pad.getCollisionWith(comingFrom, this.ball);
+      if (!Number.isNaN(bounce)) {
+        this.bounceOnWall = false;
+        this.bounceOnPad = true;
+        this.bounce = bounce;
+        return;
       }
     }
-    return false;
+    this.bounceOnWall = false;
+    this.bounceOnPad = false;
+    this.bounce = NaN;
   };
 
   /**
@@ -304,6 +365,46 @@
   };
 
   /**
+   * Update the current speed unit vector of the ball.
+   */
+  Ball.prototype.updateVector = function() {
+    var bounceX = this.bounceX.bounce;
+    var bounceY = this.bounceY.bounce;
+    if (Number.isNaN(bounceX) && Number.isNaN(bounceY)) {
+      // No bounce at all, don't change the vector.
+      return;
+    }
+    var dx2, dy2, dangle;
+    if (Number.isNaN(bounceX)) {
+      // No horizontal bounce
+      dx2 = this.event.dx;
+      dy2 = - this.event.dy;
+      dangle = bounceY;
+    } else if (Number.isNaN(bounceY)) {
+      // No vertical bounce
+      dx2 = - this.event.dx;
+      dy2 = this.event.dy;
+      dangle = bounceX;
+    } else {
+      dx2 = - this.event.dx;
+      dy2 = - this.event.dy;
+      dangle = bounceX + bounceY;
+    }
+
+    this.event.dxOld = this.event.dx;
+    this.event.dyOld = this.event.dy;
+
+    // FIXME: use dangle
+    var simpleAngle = Game.Utils.getAngle(dx2, dy2);
+    this.event.angle = simpleAngle;
+    this.event.dx = Math.cos(this.event.angle);
+    this.event.dy = Math.sin(this.event.angle);
+
+    Game.Debug.drawBounce(this,
+      simpleAngle);
+  };
+
+  /**
    * Prepare a new ball for launch.
    */
   Ball.prepare = function() {
@@ -333,16 +434,22 @@
     // Set up initial position
     ball.xpos = "center";
     ball.ypos = "center";
-    ball.event.angle = 2 * Math.random() * Math.PI;
-    ball.event.dx = Math.round(Math.cos(ball.event.angle) * 100);
-    ball.event.dy = Math.round(Math.sin(ball.event.angle) * 100);
-    ball.event.speed = Game.Config.initialBallSpeed;
 
+    // Set up initial vector
+    var angle;
+    if (Game.Config.Debug.startAngle == null) {
+      angle = 2 * Math.random() * Math.PI;
+    } else {
+      angle = Game.Config.Debug.startAngle;
+    }
+    ball.event.angle = angle;
+    ball.event.dx = Math.cos(ball.event.angle);
+    ball.event.dy = Math.sin(ball.event.angle);
+    ball.event.speed = Game.Config.initialBallSpeed;
     // Hack: Initially, we actually display the ball on the top left
     // but we want everything to happen as if it were centered.
     ball.x = ball.nextX;
     ball.y = ball.nextY;
-
 
     Ball.balls.push(ball);
     sprites.add(ball);
@@ -398,7 +505,7 @@
   /**
    * An object centralizing pause information.
    */
-  var Pause = {
+  var Pause = Game.Pause = {
     /**
      * true if the game is on pause, false otherwise
      */
@@ -498,38 +605,32 @@
 
     // Handle ball bouncing
     for (var ball of Ball.balls) {
-      var horizontalBounce = false;
-      var verticalBounce = false;
-      var collisionWithHorizontalPad = false;
-      var collisionWithVerticalPad = false;
 
       if (ball.event.dx < 0) {
-        collisionWithHorizontalPad = ball.isCollidingWithAnyPad("E", sprites.padEast);
-        horizontalBounce = ball.x <= 0 || collisionWithHorizontalPad;
+        ball.bounceX.check(ball.x <= 0, "E", padEast);
       } else if (ball.event.dx > 0) {
-        collisionWithHorizontalPad = ball.isCollidingWithAnyPad("W", sprites.padWest);
-        horizontalBounce = ball.E >= width || collisionWithHorizontalPad;
+        ball.bounceX.check(ball.E >= width, "W", padWest);
       }
 
       if (ball.event.dy < 0) {
-        collisionWithVerticalPad = ball.isCollidingWithAnyPad("S", sprites.padSouth);
-        verticalBounce =  ball.y <= 0 || collisionWithVerticalPad;
+        ball.bounceY.check(ball.y <= 0, "S", padSouth);
       } else if (ball.event.dy > 0) {
-        collisionWithVerticalPad = ball.isCollidingWithAnyPad("N", sprites.padNorth);
-        verticalBounce = ball.S >= height || collisionWithVerticalPad;
+        ball.bounceY.check(ball.S >= height, "N", padNorth);
       }
 
-      if (horizontalBounce) {
-        ball.event.dx = -ball.event.dx;
-      }
-      if (verticalBounce) {
-        ball.event.dy = -ball.event.dy;
-      }
+      var collisionWithWall = ball.bounceX.bounceOnWall ||
+        ball.bounceY.bounceOnWall;
+
+      var collisionWithPad = !collisionWithWall &&
+        ball.bounceX.bounceOnPad ||
+        ball.bounceY.bounceOnPad;
+
+      ball.updateVector();
 
       // Update the current score
-      if (collisionWithHorizontalPad || collisionWithVerticalPad) {
+      if (collisionWithPad) {
         score.current += Game.Config.Score.bounceOnPad;
-      } else if (horizontalBounce || verticalBounce) {
+      } else if (collisionWithWall) {
         score.current += Game.Config.Score.bounceOnWall;
       }
     }
