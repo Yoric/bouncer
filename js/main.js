@@ -40,15 +40,10 @@
      * Instant at which we launched the latest ball
      */
     latestBallLaunch: 0,
-    
-    /**
-     * The score multiplier, increase when the game lasts longer
-     */
-    multiplier: 1,
-  };
+ };
 
   /**
-   * The different scores of the current game
+   * The different scores and the multiplier of the current game
    */
   var score = {
     /**
@@ -60,6 +55,11 @@
      * The score in the current frame
      */
     current: 0,
+     
+    /**
+     * The score multiplier, increase when the game lasts longer
+     */
+    multiplier: 1,
   };
   
   /**
