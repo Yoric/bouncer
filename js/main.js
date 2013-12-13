@@ -14,6 +14,7 @@
   var width = window.innerWidth;
   var height = window.innerHeight;
   var eltScore = $("score");
+  var eltMultiplier = $("multiplier");
   var eltHealth = $("health");
 
   /**
@@ -38,7 +39,12 @@
     /**
      * Instant at which we launched the latest ball
      */
-    latestBallLaunch: 0
+    latestBallLaunch: 0,
+    
+    /**
+     * The score multiplier, increase when the game lasts longer
+     */
+    multiplier: 1,
   };
 
   /**
@@ -646,7 +652,11 @@
 
       // Update the current score and current health
       if (collisionWithPad) {
-        score.current += Game.Config.Score.bounceOnPad;
+        if (timeStamps.currentFrame - timeStamps.lastestMultiplierUpdate >= 10000) {
+          score.multiplier += 0.5;
+          timeStamps.lastestMultiplierUpdate = timeStamps.currentFrame;
+        }
+        score.current += Game.Config.Score.bounceOnPad * score.multiplier;
         health.current += Game.Config.Health.regenerate;
       } else if (collisionWithWall) {
         score.current += Game.Config.Score.bounceOnWall;
@@ -710,6 +720,11 @@
     if (score.current != score.previous) {
       eltScore.textContent = score.current + " pts";
       score.previous = score.current;
+    }
+    
+    // Update the score multiplier if it has changed
+    if (timeStamps.lastestMultiplierUpdate == timeStamps.currentFrame && score.multiplier > 1) {
+      eltMultiplier.textContent = "x " + score.multiplier;
     }
     
     // Update the health if it has changed
