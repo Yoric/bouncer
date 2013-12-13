@@ -287,7 +287,8 @@
 
     // We start our balls with some temporary CSS.
     // Set to false once the temporary CSS has been cleaned up
-    this._classInitialized = false;
+    this.kind = "init";
+    this.nextKind = "regular";
 
     // The unit vector of speed for this ball
     this.event.dx = 0;
@@ -360,7 +361,7 @@
   /**
    * A list of CSS values for colors for the ball.
    */
-  var BALL_KINDS = ['regular' , 'black', 'white'];
+  var BALL_KINDS = ['regular', 'black', 'white'];
 
   /**
    * Change the color of the ball. This function is called when a ball touch a pad.
@@ -385,18 +386,6 @@
   // The number of balls prepared but not launched yet.
   // These balls will be launched on the next call to Ball.flushPending
   Ball._pendingBalls = [];
-
-  /**
-   * If necessary, remove any temporary CSS, then write to DOM.
-   */
-  Ball.prototype.writeToDOM = function() {
-    // Clear any temporary CSS
-    if (!this._classInitialized) {
-      this.element.classList.remove("init");
-      this._classInitialized = true;
-    }
-    Sprite.prototype.writeToDOM.call(this);
-  };
 
   /**
    * Update the current speed unit vector of the ball.
