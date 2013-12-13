@@ -52,31 +52,6 @@ div#pad_south {
     z-index: 2;
 }
 
-/*
-  The ball
-*/
-div.ball {
-    top: 0;
-    left: 0;
-    width: 15px;
-    height: 15px;
-    color: white;
-    border-color: red;
-    border-style: solid;
-    border-radius: 100%;
-    position: absolute;
-    font-size: 0;
-    z-index: 0;
-}
-
-
-div.ball.init {
-    /* Hack: To avoid having to read/write DOM during ball initialization,
-       we set the position to the middle of the screen arbitrarily during
-       ball creation. This is removed on the first call to writeToDOM.*/
-    visibility: hidden;
-}
-
 
 /*
   Messages
