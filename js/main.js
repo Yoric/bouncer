@@ -231,38 +231,34 @@
     getCollisionWith: function(comingFrom, sprite) {
       var centerX = sprite.centerX;
       var centerY = sprite.centerY;
-      var between = Game.Utils.between; // Import utility functions
-      var closeTo = Game.Utils.howCloseTo;
+      var between = Game.Utils.between;
+      var getAngle = Game.Utils.getAngle;
 
+      var collision;
       switch (comingFrom) {
         case "W":
-            if (between(sprite.E, this.W, this.E)
-              && between(sprite.centerY, this.N, this.S)) {
-              return closeTo(sprite.E, this.W, this.E);
-            }
-            return NaN;
+            collision = between(sprite.E, this.W, this.E)
+              && between(centerY, this.N, this.S);
+            break;
         case "E":
-            if (between(sprite.W, this.W, this.E)
-              && between(sprite.centerY, this.N, this.S)) {
-              return closeTo(sprite.W, this.W, this.E);
-            }
-            return NaN;
+            collision = between(sprite.W, this.W, this.E)
+              && between(centerY, this.N, this.S);
+            break;
         case "N":
-            if (between(sprite.S, this.N, this.S)
-              && between(sprite.centerX, this.W, this.E)) {
-              return closeTo(sprite.S, this.N, this.S);
-            }
-            return NaN;
+            collision = between(sprite.S, this.N, this.S)
+              && between(centerX, this.W, this.E);
+            break;
         case "S":
-            if (between(sprite.N, this.N, this.S)
-              && between(sprite.centerX, this.W, this.E)) {
-              return closeTo(sprite.N, this.N, this.S);
-            }
-            return NaN;
+            collision = between(sprite.N, this.N, this.S)
+              && between(centerX, this.W, this.E);
+            break;
         default:
           throw new Error("Unknown direction: " + comingFrom);
       }
-      return NaN;
+      if (!collision) {
+        return NaN;
+      }
+      return getAngle(this.centerX - centerX, this.centerY - centerY);
     }
   };
 
@@ -402,16 +398,16 @@
       // No horizontal bounce
       dx2 = this.event.dx;
       dy2 = - this.event.dy;
-      dangle = bounceY;
+      dangle = - bounceY / 4;
     } else if (Number.isNaN(bounceY)) {
       // No vertical bounce
       dx2 = - this.event.dx;
       dy2 = this.event.dy;
-      dangle = bounceX;
+      dangle = bounceX / 4;
     } else {
       dx2 = - this.event.dx;
       dy2 = - this.event.dy;
-      dangle = bounceX + bounceY;
+      dangle = 0;
     }
 
     this.event.dxOld = this.event.dx;
@@ -419,12 +415,14 @@
 
     // FIXME: use dangle
     var simpleAngle = Game.Utils.getAngle(dx2, dy2);
-    this.event.angle = simpleAngle;
+    console.log("bounceX", bounceX, "bounceY", bounceY);
+    console.log("angle", simpleAngle, "dangle", dangle, "=>", simpleAngle + dangle);
+
+    this.event.angle = simpleAngle + dangle;
     this.event.dx = Math.cos(this.event.angle);
     this.event.dy = Math.sin(this.event.angle);
 
-    Game.Debug.drawBounce(this,
-      simpleAngle);
+    Game.Debug.drawBounce(this, simpleAngle);
   };
 
   /**
