@@ -76,7 +76,7 @@
      */
     current: Game.Config.Health.defaultStarting,
   };
-    
+
 
    /**
    * A sprite, i.e. a moving object displayed on screen.
@@ -112,6 +112,9 @@
       pageY: 0
     };
 
+    this.kind = "";
+    this.nextKind = this.kind;
+
     this.readFromDOM();
   }
   Sprite.prototype = {
@@ -131,6 +134,15 @@
      */
     writeToDOM: function() {
       this.style.transform = "translate(" + this.nextX + "px, " + this.nextY + "px)";
+      if (this.nextKind != this.kind) {
+        if (this.kind) {
+          this.element.classList.remove(this.kind);
+        }
+        if (this.nextKind) {
+          this.element.classList.add(this.nextKind);
+        }
+        this.kind = this.nextKind;
+      }
     },
 
     // Utility methods
@@ -348,14 +360,17 @@
   /**
    * A list of CSS values for colors for the ball.
    */
-  var COLOR_NAMES = ['blue' , 'red' , 'green' , 'purple' , 'black' , 'orange'];
+  var BALL_KINDS = ['regular' , 'black', 'white'];
+
   /**
    * Change the color of the ball. This function is called when a ball touch a pad.
    * The color is taken randomly from tabColors.
    */
   Ball.prototype.changeBallColor = function() {
-    var i = (Math.floor(Math.random() * COLOR_NAMES.length) + 1);
-    this.style.borderColor = COLOR_NAMES[i];
+    var i = Math.floor(Math.random() * BALL_KINDS.length);
+    var className = BALL_KINDS[i];
+    this.nextKind = className;
+    console.log("Switching to class", className);
   };
 
   /**
@@ -437,6 +452,7 @@
     element.id = id;
     element.classList.add("ball");
     element.classList.add("init");
+    element.classList.add("regular");
     element.textContent = "B" + Ball._counter;
     $("screen").appendChild(element);
     this._pendingBalls.push(id);

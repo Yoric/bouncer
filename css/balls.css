@@ -1,0 +1,51 @@
+/*
+  The various kinds of balls.
+  */
+
+/*
+  The ball
+*/
+div.ball {
+    top: 0;
+    left: 0;
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    font-size: 0;
+    z-index: 0;
+    transition: width .5s, height .5s, border-color .5s, background-color .5s;
+}
+
+
+div.ball.init {
+    /* Hack: To avoid having to read/write DOM during ball initialization,
+       we set the position to the middle of the screen arbitrarily during
+       ball creation. This is removed on the first call to writeToDOM.*/
+    visibility: hidden;
+}
+
+
+/*
+  The various kinds of balls.
+*/
+
+div.ball.regular {
+    border-color: red;
+    border-style: solid;
+    border-radius: 100%;
+}
+
+div.ball.black {
+    width: 40px;
+    height: 40px;
+    border-color: black;
+    border-style: solid;
+    border-radius: 100%;
+    background-color: black;
+}
+
+div.ball.white {
+    border-color: black;
+    border-radius: 100%;
+    background-color: white;
+}
