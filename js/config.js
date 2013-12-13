@@ -31,14 +31,14 @@
       // substract point when a ball touch the wall
       bounceOnWall: -2,
     },
-    
+
     Health: {
-      // default health 
+      // default health
       defaultStarting: 100,
-    
+
       // decrease health when ball touches a border
       hurt: -10,
-    
+
       // increase health when ball touches a pad
       regenerate: 1,
     },
@@ -52,6 +52,6 @@
       // Generally, |null|. Otherwise, the angle for *all* new balls.
       startAngle: null,
     },
-    
+
   };
 })();
