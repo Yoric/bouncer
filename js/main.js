@@ -14,6 +14,8 @@
   var width = window.innerWidth;
   var height = window.innerHeight;
   var eltScore = $("score");
+  var eltMultiplier = $("multiplier");
+  var eltHealth = $("health");
 
   /**
    * The time at which some events happened, in milliseconds since the epoch.
@@ -37,23 +39,44 @@
     /**
      * Instant at which we launched the latest ball
      */
-    latestBallLaunch: 0
+    latestBallLaunch: 0,
+    
+    /**
+     * The score multiplier, increase when the game lasts longer
+     */
+    multiplier: 1,
   };
 
   /**
-  * The different scores of the current game
-  */
+   * The different scores of the current game
+   */
   var score = {
     /**
-    * The score of the older frame
-    */
+     * The score of the older frame
+     */
     previous: -1,
 
     /**
-    * The score in the current frame
-    */
+     * The score in the current frame
+     */
     current: 0,
   };
+  
+  /**
+   * The different values for health in current game
+   */
+  var health = {
+    /**
+     * The health of the older frame
+     */
+    previous: 0,
+
+    /**
+     * The health in the current frame
+     */
+    current: Game.Config.Health.defaultStarting,
+  };
+    
 
    /**
    * A sprite, i.e. a moving object displayed on screen.
@@ -627,11 +650,17 @@
 
       ball.updateVector();
 
-      // Update the current score
+      // Update the current score and current health
       if (collisionWithPad) {
-        score.current += Game.Config.Score.bounceOnPad;
+        if (timeStamps.currentFrame - timeStamps.lastestMultiplierUpdate >= 10000) {
+          score.multiplier += 0.5;
+          timeStamps.lastestMultiplierUpdate = timeStamps.currentFrame;
+        }
+        score.current += Game.Config.Score.bounceOnPad * score.multiplier;
+        health.current += Game.Config.Health.regenerate;
       } else if (collisionWithWall) {
         score.current += Game.Config.Score.bounceOnWall;
+        health.current += Game.Config.Health.hurt;
       }
     }
 
@@ -648,11 +677,11 @@
     padSouth.ypos = "bottom";
 
     padEast.nextY = padEast.event.pageY - padEast.height / 2;
-    padEast.nextY = Game.Utils.restrictToSegment(padEast.nextY, 0, width - padEast.height);
+    padEast.nextY = Game.Utils.restrictToSegment(padEast.nextY, 0, height - padEast.height);
     padEast.xpos = "right";
 
     padWest.nextY = padWest.event.pageY - padWest.height / 2;
-    padWest.nextY = Game.Utils.restrictToSegment(padWest.nextY, 0, width - padWest.height);
+    padWest.nextY = Game.Utils.restrictToSegment(padWest.nextY, 0, height - padWest.height);
     padWest.xpos = "left";
     
     for (ball of Ball.balls) {
@@ -689,8 +718,19 @@
 
     // Update the score if it has changed
     if (score.current != score.previous) {
-      eltScore.textContent = score.current;
+      eltScore.textContent = score.current + " pts";
       score.previous = score.current;
+    }
+    
+    // Update the score multiplier if it has changed
+    if (timeStamps.lastestMultiplierUpdate == timeStamps.currentFrame && score.multiplier > 1) {
+      eltMultiplier.textContent = "x " + score.multiplier;
+    }
+    
+    // Update the health if it has changed
+    if (health.current != health.previous) {
+      eltHealth.textContent = health.current + " ❤";
+      health.previous = health.current;
     }
 
     // -------- Write to DOM -------------
@@ -704,7 +744,19 @@
   function loop() {
     timeStamps.previousFrame = timeStamps.currentFrame;
     timeStamps.currentFrame = Date.now();
-    if (nextFrame()) {
+    
+    if (health.current <= 0) {
+      eltHealth.textContent = 0 + " ❤";
+      
+      if (score.current > 0) {
+        eltMessage.textContent = 'Congratulation, you have ' + score.current + " points !";
+        eltMessage.classList.add("visible");
+      } else {
+        eltMessage.textContent = 'You lose :-(';
+        eltMessage.classList.add("visible");
+      }
+    } else {
+      nextFrame();
       requestAnimationFrame(loop);
     }
   };
