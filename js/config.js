@@ -31,16 +31,6 @@
       // substract point when a ball touch the wall
       bounceOnWall: -2,
     },
-
-    // Activate or deactivate several debug utilities/cheat modes
-    Debug: {
-      // Generally, |false|. If |true|, draw a graphic representation
-      // of bounces.
-      bounces: false,
-
-      // Generally, |null|. Otherwise, the angle for *all* new balls.
-      startAngle: null,
-    }
     
     Health: {
       // default health 
@@ -51,7 +41,17 @@
     
       // increase health when ball touches a pad
       regenerate: 1,
-    }
+    },
+
+    // Activate or deactivate several debug utilities/cheat modes
+    Debug: {
+      // Generally, |false|. If |true|, draw a graphic representation
+      // of bounces.
+      bounces: false,
+
+      // Generally, |null|. Otherwise, the angle for *all* new balls.
+      startAngle: null,
+    },
     
   };
 })();

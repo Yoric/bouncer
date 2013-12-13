@@ -644,10 +644,10 @@
 
       ball.updateVector();
 
-      // Update the current score
+      // Update the current score and current health
       if (collisionWithPad) {
         score.current += Game.Config.Score.bounceOnPad;
-        health.current += Game.Config.Health.regenerate;      
+        health.current += Game.Config.Health.regenerate;
       } else if (collisionWithWall) {
         score.current += Game.Config.Score.bounceOnWall;
         health.current += Game.Config.Health.hurt;
