@@ -41,5 +41,17 @@
       // Generally, |null|. Otherwise, the angle for *all* new balls.
       startAngle: null,
     }
+    
+    Health: {
+      // default health 
+      defaultStarting: 100,
+    
+      // decrease health when ball touches a border
+      hurt: -10,
+    
+      // increase health when ball touches a pad
+      regenerate: 1,
+    }
+    
   };
 })();

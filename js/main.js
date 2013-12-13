@@ -14,6 +14,7 @@
   var width = window.innerWidth;
   var height = window.innerHeight;
   var eltScore = $("score");
+  var eltHealth = $("health");
 
   /**
    * The time at which some events happened, in milliseconds since the epoch.
@@ -41,19 +42,35 @@
   };
 
   /**
-  * The different scores of the current game
-  */
+   * The different scores of the current game
+   */
   var score = {
     /**
-    * The score of the older frame
-    */
+     * The score of the older frame
+     */
     previous: -1,
 
     /**
-    * The score in the current frame
-    */
+     * The score in the current frame
+     */
     current: 0,
   };
+  
+  /**
+   * The different values for health in current game
+   */
+  var health = {
+    /**
+     * The health of the older frame
+     */
+    previous: 0,
+
+    /**
+     * The health in the current frame
+     */
+    current: Game.Config.Health.defaultStarting,
+  };
+    
 
    /**
    * A sprite, i.e. a moving object displayed on screen.
@@ -630,8 +647,10 @@
       // Update the current score
       if (collisionWithPad) {
         score.current += Game.Config.Score.bounceOnPad;
+        health.current += Game.Config.Health.regenerate;      
       } else if (collisionWithWall) {
         score.current += Game.Config.Score.bounceOnWall;
+        health.current += Game.Config.Health.hurt;
       }
     }
 
@@ -689,8 +708,14 @@
 
     // Update the score if it has changed
     if (score.current != score.previous) {
-      eltScore.textContent = score.current;
+      eltScore.textContent = score.current + " pts";
       score.previous = score.current;
+    }
+    
+    // Update the health if it has changed
+    if (health.current != health.previous) {
+      eltHealth.textContent = health.current + " ❤";
+      health.previous = health.current;
     }
 
     // -------- Write to DOM -------------
@@ -704,7 +729,19 @@
   function loop() {
     timeStamps.previousFrame = timeStamps.currentFrame;
     timeStamps.currentFrame = Date.now();
-    if (nextFrame()) {
+    
+    if (health.current <= 0) {
+      eltHealth.textContent = 0 + " ❤";
+      
+      if (score.current > 0) {
+        eltMessage.textContent = 'Congratulation, you have ' + score.current + " points !";
+        eltMessage.classList.add("visible");
+      } else {
+        eltMessage.textContent = 'You lose :-(';
+        eltMessage.classList.add("visible");
+      }
+    } else {
+      nextFrame();
       requestAnimationFrame(loop);
     }
   };
