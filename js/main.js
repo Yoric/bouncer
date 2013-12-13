@@ -286,7 +286,7 @@
     Sprite.call(this, id);
 
     // We start our balls with some temporary CSS.
-    // Set to false once the temporary CSS has been cleaned up
+    // Replaced by "regular" on first display.
     this.kind = "init";
     this.nextKind = "regular";
 
