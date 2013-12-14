@@ -347,7 +347,7 @@
       eltHealth.textContent = 0 + " ❤";
       
       if (score.current > 0) {
-        eltMessage.textContent = 'Congratulation, you have ' + score.current + " points !";
+        eltMessage.textContent = 'Congratulations, you have ' + score.current + " points !";
         eltMessage.classList.add("visible");
       } else {
         eltMessage.textContent = 'You lose :-(';
