@@ -35,6 +35,11 @@
      * Instant at which we launched the latest ball
      */
     latestBallLaunch: 0,
+
+    /**
+     * Instant at the lastest score multiplier update
+     */
+    lastestMultiplierUpdate: Date.now(),
  };
 
   /**
