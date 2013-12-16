@@ -18,14 +18,17 @@ body {
     width: 100%;
 }
 
+.sprite {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
 /*
   The pads
 */
 
 div.pad {
-    position: absolute;
-    left: 0;
-    top: 0;
     z-index: 1;
     text-align: center;
     border-style: solid;
@@ -52,6 +55,17 @@ div#pad_south {
     z-index: 2;
 }
 
+/*
+  The vortex
+*/
+
+div#vortex {
+    z-index: 10; /* Must be above the balls */
+    border-radius: 100%;
+    background-color: green;
+    width: 150px;
+    height: 150px;
+}
 
 /*
   Messages
@@ -63,6 +77,7 @@ div#message {
     margin-right: auto;
     margin-top: 20%;
     visibility: hidden;
+    z-index: 20; /* Must be above the vortex*/
 }
 
 div#message.visible {

@@ -201,6 +201,11 @@
         return NaN;
       }
       return getAngle(this.centerX - centerX, this.centerY - centerY);
+    },
+
+    getDistanceBetweenCenters: function(sprite) {
+      return Game.Utils.getDistance(this.centerX - sprite.centerX,
+                                    this.centerY - sprite.centerY);
     }
   };
 
