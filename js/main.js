@@ -94,9 +94,10 @@
   padSouth.setPosition("center", "bottom");
   padEast.setPosition("left", "center");
   padWest.setPosition("right", "center");
-  for (var pad of [padNorth, padSouth, padEast, padWest]) {
-    pads.push(pad);
-    Sprite.all.add(pad);
+  
+  pads = [padNorth, padSouth, padEast, padWest];
+  for (var index in pads) {
+    Sprite.all.add(pads[index]);
   }
 
   Sprite.all.forEach(function (sprite) {
@@ -107,9 +108,9 @@
   // Handle events
 
   function onmove(e) {
-    for (var pad of pads) {
-      pad.event.pageX = e.pageX;
-      pad.event.pageY = e.pageY;
+    for (var index in pads) {
+      pads[index].event.pageX = e.pageX;
+      pads[index].event.pageY = e.pageY;
     }
     e.stopPropagation();
     e.preventDefault();
@@ -225,8 +226,9 @@
     }
 
     // Handle ball bouncing
-    for (var ball of Ball.balls) {
-
+    for (var index in Ball.balls) {
+      var ball = Ball.balls[index];
+      
       if (ball.event.dx < 0) {
         ball.bounceX.check(ball.x <= 0, "E", padEast);
       } else if (ball.event.dx > 0) {
@@ -282,7 +284,8 @@
     padWest.nextY = Game.Utils.restrictToSegment(padWest.nextY, 0, height - padWest.height);
     padWest.xpos = "left";
     
-    for (ball of Ball.balls) {
+    for (var index in Ball.balls) {
+      var ball = Ball.balls[index];
       ball.nextX = ball.x + Math.round(ball.event.dx * ball.event.speed * deltaT);
       ball.nextY = ball.y + Math.round(ball.event.dy * ball.event.speed * deltaT);
     }
@@ -303,7 +306,8 @@
     }
 
     // Update ball colors
-    for (ball of Ball.balls) {
+    for (var index in Ball.balls) {
+      var ball = Ball.balls[index];
       if (ball.bounceX.bounceOnPad || ball.bounceY.bounceOnPad) {
         ball.changeBallColor();
       }
