@@ -341,8 +341,16 @@
     
     if (Ball.balls.length == 0) {      
       if (score.current > 0) {
-        eltMessage.textContent = 'Congratulations, you have ' + score.current + " points !";
-        eltMessage.classList.add("visible");
+        var bestScore = localStorage.getItem("bestScore");
+
+        if (score.current > bestScore) {
+          eltMessage.textContent = 'New record: ' + score.current + " points !!!";
+          eltMessage.classList.add("visible");
+          localStorage.setItem("bestScore", score.current);
+        } else {
+          eltMessage.textContent = 'Congratulations, you have ' + score.current + " points !";
+          eltMessage.classList.add("visible");
+        }
       } else {
         eltMessage.textContent = 'You lose :-(';
         eltMessage.classList.add("visible");
