@@ -76,7 +76,7 @@ div#message.visible {
 #score {
     color: blue;
     position: absolute;
-    left: 40px;
+    right: 50px;
     top: 40px;
     z-index: 4;
 }
@@ -88,22 +88,11 @@ The design of score multiplier
 #multiplier {
     color: blue;
     position: absolute;
-    left: 40px;
+    right: 50px;
     top: 70px;
     z-index: 4;
 }
 
-
-/*
-  The health UI
-*/
-#health {
-    color: red;
-    position: absolute;
-    right: 40px;
-    top: 40px;
-    z-index: 4;
-}
 
 /*
   Debugging utilities

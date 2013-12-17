@@ -62,21 +62,6 @@
     multiplier: 1,
   };
   
-  /**
-   * The different values for health in current game
-   */
-  var health = {
-    /**
-     * The health of the older frame
-     */
-    previous: 0,
-
-    /**
-     * The health in the current frame
-     */
-    current: Game.Config.Health.defaultStarting,
-  };
-
   var Sprite = Game.Sprite;
   var Ball = Game.Ball;
 
@@ -197,6 +182,9 @@
     Pause.start();
   });
 
+  // Launch the first ball
+  Ball.prepare(screen);
+  timeStamps.latestBallLaunch = timeStamps.currentFrame;
 
   var nextFrame = function() {
 
@@ -250,18 +238,20 @@
 
       ball.updateVector();
 
-      // Update the current score and current health
+      // Update the score multiplier every 10 secondes
+      if (timeStamps.currentFrame - timeStamps.lastestMultiplierUpdate >= 10000) {
+        score.multiplier += 0.5;
+        timeStamps.lastestMultiplierUpdate = timeStamps.currentFrame;
+      }
+      
+      // Update the current score
       if (collisionWithPad) {
-        if (timeStamps.currentFrame - timeStamps.lastestMultiplierUpdate >= 10000) {
-          score.multiplier += 0.5;
-          timeStamps.lastestMultiplierUpdate = timeStamps.currentFrame;
-        }
         score.current += Game.Config.Score.bounceOnPad * score.multiplier;
-        health.current += Game.Config.Health.regenerate;
       } else if (collisionWithWall) {
         score.current += Game.Config.Score.bounceOnWall;
-        health.current += Game.Config.Health.hurt;
+        Ball.remove(ball);
       }
+      
     }
 
     // Update position of sprites
@@ -329,10 +319,12 @@
       eltMultiplier.textContent = "x " + score.multiplier;
     }
     
-    // Update the health if it has changed
-    if (health.current != health.previous) {
-      eltHealth.textContent = health.current + " ❤";
-      health.previous = health.current;
+    // Remove ball in the DOM if it ask to remove
+    if (Ball.toRemove.length > 0) {
+      for (var index in Ball.toRemove) {
+        screen.removeChild(Ball.toRemove[index].element);
+      }
+      Ball.toRemove.length = 0;
     }
 
     // -------- Write to DOM -------------
@@ -347,9 +339,7 @@
     timeStamps.previousFrame = timeStamps.currentFrame;
     timeStamps.currentFrame = Date.now();
     
-    if (health.current <= 0) {
-      eltHealth.textContent = 0 + " ❤";
-      
+    if (Ball.balls.length == 0) {      
       if (score.current > 0) {
         eltMessage.textContent = 'Congratulations, you have ' + score.current + " points !";
         eltMessage.classList.add("visible");
