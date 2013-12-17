@@ -109,6 +109,11 @@
    * All the balls currently on screen.
    */
   Ball.balls = [];
+  
+  /**
+   * All balls tagged for removing
+   */
+  Ball.toRemove = [];
 
   // The number of balls already launched.
   // Used to generate id of new balls.
@@ -156,6 +161,19 @@
 
     Game.Debug.drawBounce(this, simpleAngle);
   };
+  
+  /**
+   * Remove a ball in the array
+   */
+  Ball.remove = function(ball) {
+    for (var key in Ball.balls) {
+      if (Ball.balls[key].id == ball.id) {
+        Ball.toRemove.push(ball);
+        Ball.balls.splice(key, 1);
+        break;
+      }
+    }
+  }
 
   /**
    * Prepare a new ball for launch.
