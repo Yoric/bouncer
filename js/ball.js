@@ -7,6 +7,7 @@
   var Game = window.Game;
 
   var Sprite = Game.Sprite;
+  var Screen = Game.Screen;
 
   /**
    * A sprite representing a ball.
@@ -168,13 +169,13 @@
     if (this.event.dx < 0) {
       this.bounceX.check(this.x <= 0, "E", padEast);
     } else if (this.event.dx > 0) {
-      this.bounceX.check(this.E >= Sprite.width, "W", padWest);
+      this.bounceX.check(this.E >= Screen.width, "W", padWest);
     }
 
     if (this.event.dy < 0) {
       this.bounceY.check(this.y <= 0, "S", padSouth);
     } else if (this.event.dy > 0) {
-      this.bounceY.check(this.S >= Sprite.height, "N", padNorth);
+      this.bounceY.check(this.S >= Screen.height, "N", padNorth);
     }
   };
 
@@ -210,8 +211,8 @@
    */
   Ball.prototype.reproduce = function() {
     var angle = Game.Utils.getAngle(
-        this.centerX - Sprite.width / 2,
-        this.centerY - Sprite.height / 2);
+        this.centerX - Screen.width / 2,
+        this.centerY - Screen.height / 2);
     var angle1 = angle + 2 * Math.PI / 3;
     var angle2 = angle - 2 * Math.PI / 3;
     Ball._pendingPairs.push(angle1, angle2);
@@ -264,6 +265,8 @@
 
   /**
    * Prepare a new ball for launch.
+   *
+   * @Note This function performs DOM writes.
    */
   Ball.preparePairs = function(screen) {
     while (Ball._pendingPairs.length

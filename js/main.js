@@ -6,11 +6,10 @@
   var $ = document.getElementById.bind(document);
   var screen = $("screen");
   var eltMessage = $("message");
-  var width = window.innerWidth;
-  var height = window.innerHeight;
   var eltScore = $("score");
   var eltMultiplier = $("multiplier");
   var eltHealth = $("health");
+  var eltVortex = $("vortex");
 
   /**
    * The time at which some events happened, in milliseconds since the epoch.
@@ -57,6 +56,7 @@
     multiplier: 1,
   };
 
+  var Screen = Game.Screen;
   var Sprite = Game.Sprite;
   var Pad = Game.Pad;
   var Ball = Game.Ball;
@@ -80,7 +80,7 @@
     Sprite.all.add(pads[index]);
   }
 
-  var vortex = new Sprite("vortex");
+  var vortex = new Game.Vortex("vortex");
   vortex.setPosition("center", "center");
   Sprite.all.add(vortex);
 
@@ -126,6 +126,7 @@
       Pause.isPaused = true;
       eltMessage.classList.add("visible");
       eltMessage.textContent = "Pause";
+      eltVortex.classList.add("pauseanimation");
     },
 
     /**
@@ -139,6 +140,7 @@
       }
       Pause.isPaused = false;
       eltMessage.classList.remove("visible");
+      eltVortex.classList.remove("pauseanimation");
 
       // Make sure that the game doesn't freak out by launching balls,
       // increasing speed, etc.
@@ -189,14 +191,12 @@
     // Otherwise, we end up recomputing the layout several times
     // for a frame, which is very much not good.
 
+    Screen.readFromDOM();
     Sprite.all.forEach(function (sprite) {
       sprite.readFromDOM();
     });
 
     Ball.flushPending(pads);
-
-    Sprite.width = width = window.innerWidth;
-    Sprite.height = height = window.innerHeight;
 
     // --------- Done reading from DOM ----
 
@@ -240,30 +240,32 @@
         score.current += Game.Config.Score.bounceOnWall;
         Ball.remove(ball);
       }
-      
     }
 
     // Update position of sprites
-    // Note that we set both x and y, even for sprites that can move only
-    // laterally/vertically, to ensure that we keep the game flowing even
-    // in case of screen resize or orientation change.
     padNorth.nextX = padNorth.event.pageX - padNorth.width / 2;
-    padNorth.nextX = Game.Utils.restrictToSegment(padNorth.nextX, 0, width - padNorth.width);
-    padNorth.ypos = "top";
+    padNorth.nextX = Game.Utils.restrictToSegment(padNorth.nextX, 0,
+                                                  Screen.width - padNorth.width);
 
     padSouth.nextX = padSouth.event.pageX - padSouth.width / 2;
-    padSouth.nextX = Game.Utils.restrictToSegment(padSouth.nextX, 0, width - padSouth.width);
-    padSouth.ypos = "bottom";
+    padSouth.nextX = Game.Utils.restrictToSegment(padSouth.nextX, 0,
+                                                  Screen.width - padSouth.width);
 
     padEast.nextY = padEast.event.pageY - padEast.height / 2;
-    padEast.nextY = Game.Utils.restrictToSegment(padEast.nextY, 0, height - padEast.height);
-    padEast.xpos = "right";
+    padEast.nextY = Game.Utils.restrictToSegment(padEast.nextY, 0,
+                                                 Screen.height - padEast.height);
 
     padWest.nextY = padWest.event.pageY - padWest.height / 2;
-    padWest.nextY = Game.Utils.restrictToSegment(padWest.nextY, 0, height - padWest.height);
-    padWest.xpos = "left";
+    padWest.nextY = Game.Utils.restrictToSegment(padWest.nextY, 0,
+                                                 Screen.height - padWest.height);
 
-    vortex.setPosition("center", "center");
+    if (Screen.hasChanged()) {
+      padNorth.ypos = "top";
+      padSouth.ypos = "bottom";
+      padEast.xpos = "right";
+      padWest.xpos = "left";
+      vortex.setPosition("center", "center");
+    }
 
     for (index in Ball.balls) {
       ball = Ball.balls[index];
@@ -292,9 +294,10 @@
     Sprite.all.forEach(function (sprite) {
       sprite.writeToDOM();
     });
-    screen.style.width = width;
-    screen.style.height = height;
-
+    if (Screen.hasChanged) {
+      screen.style.width = Screen.width;
+      screen.style.height = Screen.height;
+    }
     // Update the score if it has changed
     if (score.current != score.previous) {
       eltScore.textContent = score.current + " pts";
@@ -326,7 +329,7 @@
     timeStamps.previousFrame = timeStamps.currentFrame;
     timeStamps.currentFrame = Date.now();
 
-    if (Ball.isEmpty()) {
+    if (Ball.isEmpty() && !Game.Config.Debug.immortal) {
       if (score.current > 0) {
         var bestScore = localStorage.getItem("bestScore");
 
