@@ -77,12 +77,12 @@
   var pads = [padNorth, padSouth, padEast, padWest];
 
   for (var index in pads) {
-    Sprite.all.add(pads[index]);
+    Sprite.all.push(pads[index]);
   }
 
   var vortex = new Game.Vortex("vortex");
   vortex.setPosition("center", "center");
-  Sprite.all.add(vortex);
+  Sprite.all.push(vortex);
 
   Sprite.all.forEach(function (sprite) {
     sprite.writeToDOM();
