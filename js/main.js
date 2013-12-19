@@ -31,12 +31,7 @@
      */
     currentFrame: Date.now(),
 
-    /**
-     * Instant at which we launched the latest ball
-     */
-    latestBallLaunch: 0,
-
-    /**
+   /**
      * Instant at the lastest score multiplier update
      */
     lastestMultiplierUpdate: Date.now(),
@@ -55,35 +50,40 @@
      * The score in the current frame
      */
     current: 0,
-     
+
     /**
      * The score multiplier, increase when the game lasts longer
      */
     multiplier: 1,
   };
-  
-  var Sprite = Game.Sprite;
-  var Ball = Game.Ball;
 
+  var Sprite = Game.Sprite;
+  var Pad = Game.Pad;
+  var Ball = Game.Ball;
+  Ball.introduce();
 
   // Shortcut: an array with all the pads
   var pads = [];
 
   // Initialize sprites
-  var padNorth = new Sprite("pad_north");
-  var padSouth = new Sprite("pad_south");
-  var padEast = new Sprite("pad_east");
-  var padWest = new Sprite("pad_west");
+  var padNorth = Pad.padNorth = new Pad("pad_north");
+  var padSouth = Pad.padSouth = new Pad("pad_south");
+  var padEast = Pad.padEast = new Pad("pad_east");
+  var padWest = Pad.padWest = new Pad("pad_west");
 
   padNorth.setPosition("center", "top");
   padSouth.setPosition("center", "bottom");
   padEast.setPosition("left", "center");
   padWest.setPosition("right", "center");
-  
-  pads = [padNorth, padSouth, padEast, padWest];
-  for (var index in pads) {
-    Sprite.all.add(pads[index]);
+
+  for (var pad of [padNorth, padSouth, padEast, padWest]) {
+    pads.push(pad);
+    Sprite.all.add(pad);
   }
+
+  var vortex = new Sprite("vortex");
+  vortex.setPosition("center", "center");
+  Sprite.all.add(vortex);
 
   Sprite.all.forEach(function (sprite) {
     sprite.writeToDOM();
@@ -146,7 +146,6 @@
       var now = Date.now();
       timeStamps.previousFrame = now - 15;
       timeStamps.currentFrame = now;
-      timeStamps.latestBallLaunch = now;
 
       // Resume game
       requestAnimationFrame(loop);
@@ -182,9 +181,6 @@
     Pause.start();
   });
 
-  // Launch the first ball
-  Ball.prepare(screen);
-  timeStamps.latestBallLaunch = timeStamps.currentFrame;
 
   var nextFrame = function() {
 
@@ -213,20 +209,14 @@
       return false;
     }
 
-    // Handle ball bouncing
+    // Handle ball movement
     for (var index in Ball.balls) {
       var ball = Ball.balls[index];
-      
-      if (ball.event.dx < 0) {
-        ball.bounceX.check(ball.x <= 0, "E", padEast);
-      } else if (ball.event.dx > 0) {
-        ball.bounceX.check(ball.E >= width, "W", padWest);
-      }
-
-      if (ball.event.dy < 0) {
-        ball.bounceY.check(ball.y <= 0, "S", padSouth);
-      } else if (ball.event.dy > 0) {
-        ball.bounceY.check(ball.S >= height, "N", padNorth);
+      if (ball.isEnteringVortex(vortex)) {
+        // The ball just entered the vortex
+        ball.reproduce();
+      } else {
+        ball.checkBounces(padNorth, padSouth, padEast, padWest);
       }
 
       var collisionWithWall = ball.bounceX.bounceOnWall ||
@@ -273,9 +263,11 @@
     padWest.nextY = padWest.event.pageY - padWest.height / 2;
     padWest.nextY = Game.Utils.restrictToSegment(padWest.nextY, 0, height - padWest.height);
     padWest.xpos = "left";
-    
-    for (var index in Ball.balls) {
-      var ball = Ball.balls[index];
+
+    vortex.setPosition("center", "center");
+
+    for (index in Ball.balls) {
+      ball = Ball.balls[index];
       ball.nextX = ball.x + Math.round(ball.event.dx * ball.event.speed * deltaT);
       ball.nextY = ball.y + Math.round(ball.event.dy * ball.event.speed * deltaT);
     }
@@ -289,15 +281,11 @@
     // -------- Write to DOM -------------
 
     // Prepare new balls
-    if (timeStamps.currentFrame - timeStamps.latestBallLaunch >=
-      Game.Config.intervalBetweenBalls) {
-      Ball.prepare(screen);
-      timeStamps.latestBallLaunch = timeStamps.currentFrame;
-    }
+    Ball.preparePairs(screen);
 
     // Update ball colors
-    for (var index in Ball.balls) {
-      var ball = Ball.balls[index];
+    for (index in Ball.balls) {
+      ball = Ball.balls[index];
       if (ball.bounceX.bounceOnPad || ball.bounceY.bounceOnPad) {
         ball.changeBallColor();
       }
@@ -313,7 +301,7 @@
       eltScore.textContent = score.current + " pts";
       score.previous = score.current;
     }
-    
+
     // Update the score multiplier if it has changed
     if (timeStamps.lastestMultiplierUpdate == timeStamps.currentFrame && score.multiplier > 1) {
       eltMultiplier.textContent = "x " + score.multiplier;
@@ -321,7 +309,7 @@
     
     // Remove ball in the DOM if it ask to remove
     if (Ball.toRemove.length > 0) {
-      for (var index in Ball.toRemove) {
+      for (index in Ball.toRemove) {
         screen.removeChild(Ball.toRemove[index].element);
       }
       Ball.toRemove.length = 0;
@@ -338,8 +326,8 @@
   function loop() {
     timeStamps.previousFrame = timeStamps.currentFrame;
     timeStamps.currentFrame = Date.now();
-    
-    if (Ball.balls.length == 0) {      
+
+    if (Ball.isEmpty()) {
       if (score.current > 0) {
         var bestScore = localStorage.getItem("bestScore");
 

@@ -101,5 +101,8 @@
       return angle;
     },
 
+    getDistance: function(dx, dy) {
+      return Math.sqrt(dx * dx + dy * dy);
+    }
   };
 })();

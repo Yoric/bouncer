@@ -1,3 +1,6 @@
+/**
+ * Everything dealing with balls.
+ */
 (function() {
   "use strict";
 
@@ -28,6 +31,9 @@
     // Information on bouncing
     this.bounceX = new Bouncer(this, pads);
     this.bounceY = new Bouncer(this, pads);
+
+    this.previousDistanceToVortex = 0;
+    this.distanceToVortex = 0;
   }
   // Inherit prototype
   Ball.prototype = Object.create(Sprite.prototype);
@@ -41,6 +47,8 @@
     this.pads = pads;
     this.bounceOnWall = false;
     this.bounceOnPad = false;
+    this.bounceOnVortex = false;
+
     /**
      * An indication of how we need to bounce this ball against a
      * vertical (respectively horizontal) obstacle, as a number
@@ -69,6 +77,7 @@
     if (wall) {
       this.bounceOnWall = true;
       this.bounceOnPad = false;
+      this.bounceOnVortex = false;
       this.bounce = 0;
       return;
     }
@@ -80,12 +89,14 @@
       if (!Number.isNaN(bounce)) {
         this.bounceOnWall = false;
         this.bounceOnPad = true;
+        this.bounceOnVortex = false;
         this.bounce = bounce;
         return;
       }
     }
     this.bounceOnWall = false;
     this.bounceOnPad = false;
+    this.bounceOnVortex = false;
     this.bounce = NaN;
   };
 
@@ -104,24 +115,6 @@
     this.nextKind = className;
     console.log("Switching to class", className);
   };
-
-  /**
-   * All the balls currently on screen.
-   */
-  Ball.balls = [];
-  
-  /**
-   * All balls tagged for removing
-   */
-  Ball.toRemove = [];
-
-  // The number of balls already launched.
-  // Used to generate id of new balls.
-  Ball._counter = 0;
-
-  // The number of balls prepared but not launched yet.
-  // These balls will be launched on the next call to Ball.flushPending
-  Ball._pendingBalls = [];
 
   /**
    * Update the current speed unit vector of the ball.
@@ -161,7 +154,101 @@
 
     Game.Debug.drawBounce(this, simpleAngle);
   };
-  
+
+  /**
+   * Determine whether the ball is bouncing on a pad or a wall.
+   * Update internal state accordingly.
+   *
+   * @param {Sprite} padNorth
+   * @param {Sprite} padSouth
+   * @param {Sprite} padEast
+   * @param {Sprite} padWest
+   */
+  Ball.prototype.checkBounces = function(padNorth, padSouth, padEast, padWest) {
+    if (this.event.dx < 0) {
+      this.bounceX.check(this.x <= 0, "E", padEast);
+    } else if (this.event.dx > 0) {
+      this.bounceX.check(this.E >= Sprite.width, "W", padWest);
+    }
+
+    if (this.event.dy < 0) {
+      this.bounceY.check(this.y <= 0, "S", padSouth);
+    } else if (this.event.dy > 0) {
+      this.bounceY.check(this.S >= Sprite.height, "N", padNorth);
+    }
+  };
+
+  /**
+   * Determine whether the ball is entering the vortex, update
+   * internal state accordingly.
+   *
+   * The ball is entering the vortex if during the previous call, the
+   * distance between centers was greater than the sum of radiuses, and
+   * during this call, the distance is now lesser.
+   *
+   * @param {Sprite} vortex
+   * @return {boolean} true if the ball is entering the vortex on this
+   * call, false if the ball is out of the vortex or was already in the
+   * vortex.
+   */
+  Ball.prototype.isEnteringVortex = function(vortex) {
+    this.previousDistanceToVortex = this.distanceToVortex;
+    this.distanceToVortex = this.getDistanceBetweenCenters(vortex) -
+      (vortex.width + this.width) / 2;
+    if (this.previousDistanceToVortex <= 0 || this.distanceToVortex > 0) {
+      return false;
+    }
+    this.bounceX.bounceOnVortex = true;
+    this.bounceX.bounce = 0;
+    this.bounceY.bounceOnVortex = true;
+    this.bounceY.bounce = 0;
+    return true;
+  };
+
+  /**
+   * Prepare two balls to be launched on the next frame.
+   */
+  Ball.prototype.reproduce = function() {
+    var angle = Game.Utils.getAngle(
+        this.centerX - Sprite.width / 2,
+        this.centerY - Sprite.height / 2);
+    var angle1 = angle + 2 * Math.PI / 3;
+    var angle2 = angle - 2 * Math.PI / 3;
+    Ball._pendingPairs.push(angle1, angle2);
+  };
+
+  /**
+   * All the balls currently on screen.
+   */
+  Ball.balls = [];
+
+  /**
+   * All balls tagged for removal
+   */
+  Ball.toRemove = [];
+
+  // The number of balls already launched.
+  // Used to generate id of new balls.
+  Ball._counter = 0;
+
+  // The balls prepared but not launched yet.
+  // These balls will be launched on the next call to Ball.flushPending
+  Ball._pendingBalls = [];
+
+  Ball._pendingPairs = [];
+
+  /**
+   * Determine whether we are out of balls.
+   *
+   * @return {boolean} true if there are no more balls on the screen,
+   * nor balls about to be displayed.
+   */
+  Ball.isEmpty = function() {
+    return Ball.balls.length == 0
+      && Ball._pendingBalls.length == 0
+      && Ball._pendingPairs.length == 0;
+  };
+
   /**
    * Remove a ball in the array
    */
@@ -173,24 +260,33 @@
         break;
       }
     }
-  }
+  };
 
   /**
    * Prepare a new ball for launch.
    */
-  Ball.prepare = function(screen) {
-    if (Ball.balls.length >= Game.Config.maxNumberBalls) {
-      return;
+  Ball.preparePairs = function(screen) {
+    while (Ball._pendingPairs.length
+           && Ball.balls.length < Game.Config.maxNumberBalls) {
+      var angle = Ball._pendingPairs.shift();
+      var id = "ball_" + Ball._counter++;
+      var element = document.createElement("div");
+      element.id = id;
+      element.classList.add("ball");
+      element.classList.add("sprite");
+      element.classList.add("init");
+      element.classList.add("regular");
+      // FIXME: Use the angle
+      screen.appendChild(element);
+      this._pendingBalls.push(id);
     }
-    var id = "ball_" + Ball._counter++;
-    var element = document.createElement("div");
-    element.id = id;
-    element.classList.add("ball");
-    element.classList.add("init");
-    element.classList.add("regular");
-    element.textContent = "B" + Ball._counter;
-    screen.appendChild(element);
-    this._pendingBalls.push(id);
+  };
+
+  /**
+   * Prepare a new random ball.
+   */
+  Ball.introduce = function() {
+    Ball._pendingPairs.push(null);
   };
 
   /**

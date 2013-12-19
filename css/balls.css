@@ -6,11 +6,8 @@
   The ball
 */
 div.ball {
-    top: 0;
-    left: 0;
     width: 15px;
     height: 15px;
-    position: absolute;
     font-size: 0;
     z-index: 0;
     transition: width .5s, height .5s, border-color .5s, background-color .5s;
@@ -47,5 +44,6 @@ div.ball.black {
 div.ball.white {
     border-color: black;
     border-radius: 100%;
+    border-style: solid;
     background-color: white;
 }
