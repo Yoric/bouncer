@@ -1,12 +1,8 @@
 (function() {
   "use strict";
 
-  var Game;
-  if (typeof window.Game == "undefined") {
-    Game = window.Game = { };
-  } else {
-    Game = window.Game;
-  }
+  var Game = window.Game;
+  var Screen = Game.Screen;
 
   /**
    * A sprite, i.e. a moving object displayed on screen.
@@ -107,10 +103,10 @@
           this.nextX = 0;
           break;
         case 'right':
-          this.nextX = Sprite.width - this.width;
+          this.nextX = Screen.width - this.width;
           break;
         case 'center':
-          this.nextX = (Sprite.width - this.width) / 2;
+          this.nextX = (Screen.width - this.width) / 2;
           break;
         default:
           throw new Error("Unknown x position: " + arg);
@@ -128,10 +124,10 @@
           this.nextY = 0;
           break;
         case 'bottom':
-          this.nextY = Sprite.height - this.height;
+          this.nextY = Screen.height - this.height;
           break;
         case 'center':
-          this.nextY = (Sprite.height - this.height) / 2;
+          this.nextY = (Screen.height - this.height) / 2;
           break;
         default:
           throw new Error("Unknown y position: " + arg);
@@ -209,8 +205,6 @@
     }
   };
 
-  Sprite.width = window.innerWidth;
-  Sprite.height = window.innerHeight;
   Sprite.all = new Set();
   Game.Sprite = Sprite;
 
