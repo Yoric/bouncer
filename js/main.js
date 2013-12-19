@@ -62,9 +62,6 @@
   var Ball = Game.Ball;
   Ball.introduce();
 
-  // Shortcut: an array with all the pads
-  var pads = [];
-
   // Initialize sprites
   var padNorth = Pad.padNorth = new Pad("pad_north");
   var padSouth = Pad.padSouth = new Pad("pad_south");
@@ -76,9 +73,11 @@
   padEast.setPosition("left", "center");
   padWest.setPosition("right", "center");
 
-  for (var pad of [padNorth, padSouth, padEast, padWest]) {
-    pads.push(pad);
-    Sprite.all.add(pad);
+  // Shortcut: an array with all the pads
+  var pads = [padNorth, padSouth, padEast, padWest];
+
+  for (var index in pads) {
+    Sprite.all.add(pads[index]);
   }
 
   var vortex = new Sprite("vortex");
