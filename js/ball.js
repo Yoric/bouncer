@@ -264,6 +264,8 @@
 
   /**
    * Prepare a new ball for launch.
+   *
+   * @Note This function performs DOM writes.
    */
   Ball.preparePairs = function(screen) {
     while (Ball._pendingPairs.length

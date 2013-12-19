@@ -11,6 +11,7 @@
   var eltScore = $("score");
   var eltMultiplier = $("multiplier");
   var eltHealth = $("health");
+  var eltVortex = $("vortex");
 
   /**
    * The time at which some events happened, in milliseconds since the epoch.
@@ -80,7 +81,7 @@
     Sprite.all.add(pads[index]);
   }
 
-  var vortex = new Sprite("vortex");
+  var vortex = new Game.Vortex("vortex");
   vortex.setPosition("center", "center");
   Sprite.all.add(vortex);
 
@@ -126,6 +127,7 @@
       Pause.isPaused = true;
       eltMessage.classList.add("visible");
       eltMessage.textContent = "Pause";
+      eltVortex.classList.add("pauseanimation");
     },
 
     /**
@@ -139,6 +141,7 @@
       }
       Pause.isPaused = false;
       eltMessage.classList.remove("visible");
+      eltVortex.classList.remove("pauseanimation");
 
       // Make sure that the game doesn't freak out by launching balls,
       // increasing speed, etc.
@@ -263,7 +266,10 @@
     padWest.nextY = Game.Utils.restrictToSegment(padWest.nextY, 0, height - padWest.height);
     padWest.xpos = "left";
 
-    vortex.setPosition("center", "center");
+    //  Ideally, we should call `vortex.setPosition("center,
+    //  "center")`. However, the center of the vortex depends on its
+    //  current rotation, so this would cause unexpected movements in
+    //  the vortex.
 
     for (index in Ball.balls) {
       ball = Ball.balls[index];
@@ -326,7 +332,7 @@
     timeStamps.previousFrame = timeStamps.currentFrame;
     timeStamps.currentFrame = Date.now();
 
-    if (Ball.isEmpty()) {
+    if (Ball.isEmpty() && !Game.Config.Debug.immortal) {
       if (score.current > 0) {
         var bestScore = localStorage.getItem("bestScore");
 

@@ -59,12 +59,33 @@ div#pad_south {
   The vortex
 */
 
+@keyframes rotating_vortex {
+    from {
+        transform: rotate(0);
+    }
+    to {
+        transform: rotate(1turn);
+    }
+}
+
 div#vortex {
     z-index: 10; /* Must be above the balls */
     border-radius: 100%;
-    background-color: green;
+    background-image: url('../img/spiral.png');
+    background-size: cover;
     width: 150px;
     height: 150px;
+
+    /* Rotating the vortex */
+    animation-duration: 15s;
+    animation-name: rotating_vortex;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    animation-oritin: 50% 50%;
+}
+
+.pauseanimation {
+    animation-play-state: paused;
 }
 
 /*

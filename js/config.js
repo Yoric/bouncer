@@ -49,6 +49,8 @@
       // of bounces.
       bounces: false,
 
+      immortal: true,
+
       // Generally, |null|. Otherwise, the angle for *all* new balls.
       startAngle: null,
     },
