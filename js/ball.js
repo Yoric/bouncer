@@ -82,7 +82,8 @@
       this.bounce = 0;
       return;
     }
-    for (var pad of this.pads) {
+    for (var index in this.pads) {
+      var pad = this.pads[index];
       if (pad == exclude) {
         continue;
       }
@@ -323,7 +324,7 @@
     ball.y = ball.nextY;
 
     Ball.balls.push(ball);
-    Sprite.all.add(ball);
+    Sprite.all.push(ball);
   };
 
   Game.Ball = Ball;

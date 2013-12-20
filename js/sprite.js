@@ -205,7 +205,7 @@
     }
   };
 
-  Sprite.all = new Set();
+  Sprite.all = [];
   Game.Sprite = Sprite;
 
 })();
