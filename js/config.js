@@ -32,17 +32,6 @@
       bounceOnWall: -2,
     },
 
-    Health: {
-      // default health
-      defaultStarting: 100,
-
-      // decrease health when ball touches a border
-      hurt: -10,
-
-      // increase health when ball touches a pad
-      regenerate: 1,
-    },
-
     // Activate or deactivate several debug utilities/cheat modes
     Debug: {
       // Generally, |false|. If |true|, draw a graphic representation
