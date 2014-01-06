@@ -92,6 +92,8 @@ div#vortex {
   Messages
 */
 div#message {
+    position: absolute;
+    width: 100%;
     font-size: xx-large;
     text-align: center;
     margin-left: auto;
@@ -99,6 +101,7 @@ div#message {
     margin-top: 20%;
     visibility: hidden;
     z-index: 20; /* Must be above the vortex*/
+    background: rgba(84, 180, 218, 0.79);
 }
 
 div#message.visible {
