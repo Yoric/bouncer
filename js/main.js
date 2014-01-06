@@ -36,30 +36,12 @@
     lastestMultiplierUpdate: Date.now(),
  };
 
-  /**
-   * The different scores and the multiplier of the current game
-   */
-  var score = {
-    /**
-     * The score of the older frame
-     */
-    previous: -1,
-
-    /**
-     * The score in the current frame
-     */
-    current: 0,
-
-    /**
-     * The score multiplier, increase when the game lasts longer
-     */
-    multiplier: 1,
-  };
 
   var Screen = Game.Screen;
   var Sprite = Game.Sprite;
   var Pad = Game.Pad;
   var Ball = Game.Ball;
+  var Score = Game.Score;
   Ball.introduce();
 
   // Initialize sprites
@@ -229,15 +211,15 @@
 
       // Update the score multiplier every 10 secondes
       if (timeStamps.currentFrame - timeStamps.lastestMultiplierUpdate >= 10000) {
-        score.multiplier += 0.5;
+        Score.multiplier += 0.5;
         timeStamps.lastestMultiplierUpdate = timeStamps.currentFrame;
       }
       
       // Update the current score
       if (collisionWithPad) {
-        score.current += Game.Config.Score.bounceOnPad * score.multiplier;
+        Score.current += Game.Config.Score.bounceOnPad * Score.multiplier;
       } else if (collisionWithWall) {
-        score.current += Game.Config.Score.bounceOnWall;
+        Score.current += Game.Config.Score.bounceOnWall;
         Ball.remove(ball);
       }
     }
@@ -299,14 +281,14 @@
       screen.style.height = Screen.height;
     }
     // Update the score if it has changed
-    if (score.current != score.previous) {
-      eltScore.textContent = score.current + " pts";
-      score.previous = score.current;
+    if (Score.current != Score.previous) {
+      eltScore.textContent = Score.current + " pts";
+      Score.previous = Score.current;
     }
 
     // Update the score multiplier if it has changed
-    if (timeStamps.lastestMultiplierUpdate == timeStamps.currentFrame && score.multiplier > 1) {
-      eltMultiplier.textContent = "x " + score.multiplier;
+    if (timeStamps.lastestMultiplierUpdate == timeStamps.currentFrame && Score.multiplier > 1) {
+      eltMultiplier.textContent = "x " + Score.multiplier;
     }
     
     // Remove ball in the DOM if it ask to remove
@@ -330,15 +312,15 @@
     timeStamps.currentFrame = Date.now();
 
     if (Ball.isEmpty() && !Game.Config.Debug.immortal) {
-      if (score.current > 0) {
+      if (Score.current > 0) {
         var bestScore = localStorage.getItem("bestScore");
 
-        if (score.current > bestScore) {
-          eltMessage.textContent = 'New record: ' + score.current + " points !!!";
+        if (Score.current > bestScore) {
+          eltMessage.textContent = 'New record: ' + Score.current + " points !!!";
           eltMessage.classList.add("visible");
-          localStorage.setItem("bestScore", score.current);
+          localStorage.setItem("bestScore", Score.current);
         } else {
-          eltMessage.textContent = 'Congratulations, you have ' + score.current + " points !";
+          eltMessage.textContent = 'Congratulations, you have ' + Score.current + " points !";
           eltMessage.classList.add("visible");
         }
       } else {
